@@ -55,7 +55,5 @@ It displays the entities and the rights associated for the Api Generator
 
 Persist OneToMany collections
 
-Remove entity
-
 Remove entities
 
