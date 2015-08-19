@@ -1,0 +1,49 @@
+<html>
+<head>
+	<title>Api Generator Configuration Visualizer</title>
+	<!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+</head>
+<body>
+<h1>Api Generator Configuration Visualizer</h1>
+<table class="table table-striped">
+<thead>
+	<td>Entity</td>
+	<td>Url created</td>
+	<td>Get one by Id</td>
+	<td>Get one by Id (deep)</td>
+	<td>Get all instances</td>
+	<td>Get all instances (deep)</td>
+	<td>Create</td>
+	<td>Update</td>
+	<td>Delete</td>
+</thead>
+<tr>
+	<td>ANY</td>
+	<td></td>
+	<td class="{{ "ANY"|apiGeneratorAllowed('get_one') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('get_one') ? 'Yes':'No' }}</td>
+	<td class="{{ "ANY"|apiGeneratorAllowed('get_one_deep') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('get_one_deep') ? 'Yes':'No' }}</td>
+	<td class="{{ "ANY"|apiGeneratorAllowed('get_all') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('get_all') ? 'Yes':'No' }}</td>
+	<td class="{{ "ANY"|apiGeneratorAllowed('get_all_deep') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('get_all_deep') ? 'Yes':'No' }}</td>
+	<td class="{{ "ANY"|apiGeneratorAllowed('create') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('create') ? 'Yes':'No' }}</td>
+	<td class="{{ "ANY"|apiGeneratorAllowed('update') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('update') ? 'Yes':'No' }}</td>
+	<td class="{{ "ANY"|apiGeneratorAllowed('delete') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('delete') ? 'Yes':'No' }}</td>
+</tr>
+{% for availableEntity in availableEntities %}
+<tr>
+	<td>{{ availableEntity }}</td>
+	<td>{{ availableEntity|apiGeneratorNormalize }}</td>
+	<td class="{{ availableEntity|apiGeneratorAllowed('get_one') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('get_one') ? 'Yes':'No' }}</td>
+	<td class="{{ availableEntity|apiGeneratorAllowed('get_one_deep') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('get_one_deep') ? 'Yes':'No' }}</td>
+	<td class="{{ availableEntity|apiGeneratorAllowed('get_all') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('get_all') ? 'Yes':'No' }}</td>
+	<td class="{{ availableEntity|apiGeneratorAllowed('get_all_deep') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('get_all_deep') ? 'Yes':'No' }}</td>
+	<td class="{{ availableEntity|apiGeneratorAllowed('create') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('create') ? 'Yes':'No' }}</td>
+	<td class="{{ availableEntity|apiGeneratorAllowed('update') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('update') ? 'Yes':'No' }}</td>
+	<td class="{{ availableEntity|apiGeneratorAllowed('delete') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('delete') ? 'Yes':'No' }}</td>
+</tr>
+{% endfor %}
+</table>
+</body>
+</html>

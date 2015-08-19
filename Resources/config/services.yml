@@ -1,0 +1,20 @@
+services:
+    tbn.api_generator.service.api_service:
+        class: "tbn\\ApiGeneratorBundle\\Services\\ApiService"
+        arguments: 
+            - "@tbn.api_generator.service.authorization_service"
+            - "@doctrine"
+            - "@validator"
+    tbn.api_generator.twig.acme_extension:
+        class: "tbn\\ApiGeneratorBundle\\Twig\\ApiGeneratorExtension"
+        arguments: 
+            - "@tbn.api_generator.service.authorization_service"
+        tags:
+            - { name: twig.extension }
+    tbn.api_generator.service.authorization_service:
+        class: "tbn\\ApiGeneratorBundle\\Services\\AuthorizationService"
+        arguments:
+            - "%tbn.json_annotation.all%"
+            - "%tbn.json_annotation.entity%"
+            - "%tbn.api_generator.specified_entities%"
+            
