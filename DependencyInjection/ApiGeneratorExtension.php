@@ -24,7 +24,7 @@ class ApiGeneratorExtension extends Extension
 
         //set all config as parameter
         foreach ($config as $key => $value) {
-            $container->setParameter('tbn.json_annotation.'.$key, $value);
+            $container->setParameter('tbn.api_generator.'.$key, $value);
         }
 
         $specifiedEntities = array_keys($config['entity']);
