@@ -2,12 +2,9 @@
 
 namespace tbn\ApiGeneratorBundle\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use tbn\JsonAnnotationBundle\Configuration\Json;
-use Symfony\Component\HttpFoundation\Request;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 /**
  *
@@ -19,6 +16,8 @@ class ConfigurationController extends Controller
     /**
      * @Route("/apigenerator-configuration")
      * @Template
+     *
+     * @return type
      */
     public function indexAction()
     {

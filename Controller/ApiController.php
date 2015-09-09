@@ -2,12 +2,11 @@
 
 namespace tbn\ApiGeneratorBundle\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use tbn\JsonAnnotationBundle\Configuration\Json;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
-
+use tbn\JsonAnnotationBundle\Configuration\Json;
 
 /**
  * @Route("/apigenerator")
@@ -19,6 +18,10 @@ class ApiController extends Controller
      *
      * @Method({"POST"})
      * @Json
+     *
+     * @param Request $request
+     * @param type    $itemNamespace
+     * @return type
      */
     public function handleAction(Request $request, $itemNamespace)
     {
@@ -39,6 +42,11 @@ class ApiController extends Controller
      * @Method({"GET"})
      *
      * @Json
+     *
+     * @param Request $request
+     * @param type    $itemNamespace
+     *
+     * @return type
      */
     public function getAllAction(Request $request, $itemNamespace)
     {
@@ -61,6 +69,11 @@ class ApiController extends Controller
      * @Method({"GET"})
      *
      * @Json
+     *
+     * @param Request $request
+     * @param type    $itemNamespace
+     *
+     * @return type
      */
     public function getAllDeepAction(Request $request, $itemNamespace)
     {
@@ -85,6 +98,12 @@ class ApiController extends Controller
      * @Method({"GET"})
      *
      * @Json
+     *
+     * @param Request $request
+     * @param type    $itemNamespace
+     * @param type    $id
+     *
+     * @return type
      */
     public function getByIdAction(Request $request, $itemNamespace, $id)
     {
@@ -108,6 +127,12 @@ class ApiController extends Controller
      * @Method({"GET"})
      *
      * @Json
+     *
+     * @param Request $request
+     * @param type    $itemNamespace
+     * @param type    $id
+     *
+     * @return type
      */
     public function getByIdDeepAction(Request $request, $itemNamespace, $id)
     {
@@ -132,6 +157,11 @@ class ApiController extends Controller
      * @Method({"DELETE"})
      *
      * @Json
+     *
+     * @param Request $request
+     * @param type    $itemNamespace
+     * @param type    $id
+     * @return type
      */
     public function deleteByIdAction(Request $request, $itemNamespace, $id)
     {

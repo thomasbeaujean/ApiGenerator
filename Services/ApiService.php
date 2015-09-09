@@ -3,15 +3,8 @@
 namespace tbn\ApiGeneratorBundle\Services;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
-use tbn\DoctrineRelationVisualizerBundle\Entity\Entity;
-use tbn\DoctrineRelationVisualizerBundle\Entity\AssociationEntity;
-use Symfony\Component\Yaml\Dumper;
-use Symfony\Component\Yaml\Yaml;
-use tbn\GetSetForeignNormalizerBundle\Component\Serializer\Normalizer\GetSetPrimaryMethodNormalizer;
-use Symfony\Component\Filesystem\Filesystem;
-use tbn\DoctrineRelationVisualizerBundle\Entity\Field;
 use Symfony\Component\HttpFoundation\Request;
-use Doctrine\ORM\EntityNotFoundException;
+use tbn\DoctrineRelationVisualizerBundle\Entity\Entity;
 
 /**
  *
@@ -29,14 +22,90 @@ class ApiService
     /**
      *
      * @param AuthorizationService $authorizationService
-     * @param unknown $doctrine
-     * @param unknown $validator
+     * @param unknown              $doctrine
+     * @param unknown              $validator
      */
     public function __construct(AuthorizationService $authorizationService, $doctrine, $validator)
     {
         $this->authorizationService = $authorizationService;
         $this->doctrine = $doctrine;
         $this->validator = $validator;
+    }
+
+    /**
+     * Get the list of entities that are enabled in the bundle
+     *
+     * @return array
+     */
+    public function getEntitiesEnabled()
+    {
+        $entities = array();
+
+        $em = $this->doctrine->getManager();
+        $meta = $em->getMetadataFactory()->getAllMetadata();
+
+        foreach ($meta as $m) {
+            $entities[] = $m->rootEntityName;
+        }
+
+        return $entities;
+    }
+
+    /**
+     * Retrieve an entity by the identifier listed in the data
+     *
+     * @param string $entityClass
+     * @param object $data
+     *
+     * @throws Exception
+     *
+     * @return Entity
+     */
+    public function retrieveEntity($entityClass, $data)
+    {
+        $doctrine = $this->doctrine;
+        $em = $doctrine->getManager();
+        $repository = $em->getRepository($entityClass);
+
+        $identifiers = $this->getIdentifiers($entityClass);
+
+        $criteria = array();
+
+        //create the array of identifiers
+        foreach ($identifiers as $identifier) {
+            if (!array_key_exists($identifier, $data)) {
+                throw new \Exception('The identifier ['.$identifier.'] was not in the data provided for the entity ['.$entityClass.']');
+            }
+            $criteria[$identifier] = $data[$identifier];
+        }
+
+        $entity = $repository->findOneBy($criteria);
+
+        if ($entity === null) {
+            throw new \Exception('The entity ['.$entityClass.'] with the id ['.print_r($criteria, true).'] was not found.');
+        }
+
+        return $entity;
+    }
+
+    /**
+     * Retrieve an entity by the identifier listed in the data
+     *
+     * @param string $entityClass
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
+    public function retrieveAllEntities($entityClass)
+    {
+        $doctrine = $this->doctrine;
+        $em = $doctrine->getManager();
+        $repository = $em->getRepository($entityClass);
+
+        $entities = $repository->findAll();
+
+        return $entities;
     }
 
     /**
@@ -73,6 +142,57 @@ class ApiService
         $em->flush();
 
         return $entities;
+    }
+
+    /**
+     *
+     * @param string $entityClass
+     * @param array  $data
+     *
+     * @return NULL
+     */
+    public function getEntityByData($entityClass, $data)
+    {
+        if (!is_array($data)) {
+            throw new \Exception('The data for the item '.$entityClass.' must be an array. Data found ['.print_r($data, true).']');
+        }
+
+        $entityClassIdentifiers = $this->getIdentifiers($entityClass);
+
+        $containsIdentifier = true;
+
+        foreach ($entityClassIdentifiers as $entityClassIdentifier) {
+            if (!array_key_exists($entityClassIdentifier, $data)) {
+                $containsIdentifier = false;
+            } else {
+                if ($data[$entityClassIdentifier] === null) {
+                    $containsIdentifier = false;
+                }
+            }
+        }
+
+        $entity = null;
+
+        //new entity
+        if ($containsIdentifier === false) {
+            $entity = $this->createEntity($entityClass, $data);
+        } else {
+            $delete = false;
+            if (array_key_exists('_delete', $data)) {
+                if ($data['delete'] === true) {
+                    $delete = true;
+                }
+            }
+
+            if (!$delete) {
+                //update
+                $entity = $this->updateEntity($entityClass, $data);
+            } else {
+                $this->deleteEntity($data);
+            }
+        }
+
+        return $entity;
     }
 
     /**
@@ -131,57 +251,6 @@ class ApiService
         foreach ($entities as $entity) {
             $em->persist($entity);
         }
-    }
-
-    /**
-     *
-     * @param string $itemNamespace
-     * @param array $data
-     *
-     * @return NULL
-     */
-    public function getEntityByData($entityClass, $data)
-    {
-        if (!is_array($data)) {
-            throw new \Exception('The data for the item '.$entityClass.' must be an array. Data found ['.print_r($data, true).']');
-        }
-
-        $entityClassIdentifiers = $this->getIdentifiers($entityClass);
-
-        $containsIdentifier = true;
-
-        foreach ($entityClassIdentifiers as $entityClassIdentifier) {
-            if (!array_key_exists($entityClassIdentifier, $data)) {
-                $containsIdentifier = false;
-            } else {
-                if ($data[$entityClassIdentifier] === null) {
-                    $containsIdentifier = false;
-                }
-            }
-        }
-
-        $entity = null;
-
-        //new entity
-        if ($containsIdentifier === false) {
-            $entity = $this->createEntity($entityClass, $data);
-        } else {
-            $delete = false;
-            if (array_key_exists('_delete', $data)) {
-                if ($data['delete'] === true) {
-                    $delete = true;
-                }
-            }
-
-            if (!$delete) {
-                //update
-                $entity = $this->updateEntity($entityClass, $data);
-            } else {
-                $this->deleteEntity($data);
-            }
-        }
-
-        return $entity;
     }
 
     /**
@@ -253,14 +322,14 @@ class ApiService
 
     /**
      *
-     * @param string $itemNamespace
-     * @param object $entity
+     * @param string $entityClass
+     * @param object $data
      */
     protected function createEntity($entityClass, $data)
     {
         $entityClassname = $this->getEntityClassname($entityClass);
 
-        $entity = new $entityClassname;
+        $entity = new $entityClassname();
 
         $identifiers = $this->getIdentifiers($entityClass);
         $meta = $this->getMetadata($entityClass);
@@ -351,8 +420,8 @@ class ApiService
      *
      * @param object $entity
      * @param string $entityClass
-     * @param array $data
-     * @param array $ignoredAttributes
+     * @param array  $data
+     * @param array  $ignoredAttributes
      *
      * @throws \Exception
      */
@@ -407,86 +476,13 @@ class ApiService
     }
 
     /**
-     * Retrieve an entity by the identifier listed in the data
-     *
-     * @param string $entityClass
-     * @param object $entity
-     *
-     * @throws Exception
-     */
-    public function retrieveEntity($entityClass, $data)
-    {
-        $doctrine = $this->doctrine;
-        $em = $doctrine->getManager();
-        $repository = $em->getRepository($entityClass);
-
-        $identifiers = $this->getIdentifiers($entityClass);
-
-        $criteria = array();
-
-        //create the array of identifiers
-        foreach ($identifiers as $identifier) {
-            if (!array_key_exists($identifier, $data)) {
-                throw new \Exception('The identifier ['.$identifier.'] was not in the data provided for the entity ['.$entityClass.']');
-            }
-            $criteria[$identifier] = $data[$identifier];
-        }
-
-        $entity = $repository->findOneBy($criteria);
-
-        if ($entity === null) {
-            throw new \Exception('The entity ['.$entityClass.'] with the id ['.print_r($criteria, true).'] was not found.');
-        }
-
-        return $entity;
-    }
-
-    /**
-     * Retrieve an entity by the identifier listed in the data
-     *
-     * @param string $entityClass
-     * @param object $entity
-     *
-     * @throws Exception
-     */
-    public function retrieveAllEntities($entityClass)
-    {
-        $doctrine = $this->doctrine;
-        $em = $doctrine->getManager();
-        $repository = $em->getRepository($entityClass);
-
-        $entities = $repository->findAll();
-
-        return $entities;
-    }
-
-    /**
      *
      * @param unknown $entity
+     *
      * @throws \Exception
      */
     protected function deleteEntity($entity)
     {
         throw new \Exception('The delete action for the api generator is not yet available');
-    }
-
-    /**
-     * Get the list of entities that are enabled in the bundle
-     *
-     * @return array
-     */
-    public function getEntitiesEnabled()
-    {
-        $entities = array();
-
-        $em = $this->doctrine->getManager();
-        $meta = $em->getMetadataFactory()->getAllMetadata();
-
-        foreach ($meta as $m) {
-
-            $entities[] = $m->rootEntityName;
-        }
-
-        return $entities;
     }
 }

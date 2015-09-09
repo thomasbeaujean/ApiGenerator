@@ -2,17 +2,6 @@
 
 namespace tbn\ApiGeneratorBundle\Services;
 
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
-use tbn\DoctrineRelationVisualizerBundle\Entity\Entity;
-use tbn\DoctrineRelationVisualizerBundle\Entity\AssociationEntity;
-use Symfony\Component\Yaml\Dumper;
-use Symfony\Component\Yaml\Yaml;
-use tbn\GetSetForeignNormalizerBundle\Component\Serializer\Normalizer\GetSetPrimaryMethodNormalizer;
-use Symfony\Component\Filesystem\Filesystem;
-use tbn\DoctrineRelationVisualizerBundle\Entity\Field;
-use Symfony\Component\HttpFoundation\Request;
-use Doctrine\ORM\EntityNotFoundException;
-
 /**
  *
  * @author Thomas BEAUJEAN
@@ -57,6 +46,19 @@ class AuthorizationService
         }
 
         return $isAllowed;
+    }
+
+    /**
+     *
+     * @param string $itemNamespace
+     * @param string $action
+     * @throws \Exception
+     */
+    public function checkItemNamespaceAction($itemNamespace, $action)
+    {
+        if ($this->isEntityClassAllowedForRequest($itemNamespace, $action) === false) {
+            throw new \Exception('The entity ['.$itemNamespace.'] is not allowed by the api generator for '.$action);
+        }
     }
 
     /**
@@ -110,18 +112,5 @@ class AuthorizationService
         }
 
         return $isAllowed;
-    }
-
-    /**
-     *
-     * @param string $itemNamespace
-     * @param string $action
-     * @throws \Exception
-     */
-    public function checkItemNamespaceAction($itemNamespace, $action)
-    {
-        if ($this->isEntityClassAllowedForRequest($itemNamespace, $action) === false) {
-            throw new \Exception('The entity ['.$itemNamespace.'] is not allowed by the api generator for '.$action);
-        }
     }
 }
