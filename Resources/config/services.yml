@@ -2,6 +2,7 @@ services:
     tbn.api_generator.service.api_service:
         class: "tbn\\ApiGeneratorBundle\\Services\\ApiService"
         arguments:
+            - "%tbn.api_generator.entities%"
             - "@tbn.api_generator.service.authorization_service"
             - "@doctrine"
             - "@validator"
@@ -14,6 +15,4 @@ services:
     tbn.api_generator.service.authorization_service:
         class: "tbn\\ApiGeneratorBundle\\Services\\AuthorizationService"
         arguments:
-            - "%tbn.api_generator.all%"
-            - "%tbn.api_generator.entity%"
-            - "%tbn.api_generator.specified_entities%"
+            - "%tbn.api_generator.entities%"

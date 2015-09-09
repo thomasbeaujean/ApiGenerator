@@ -21,20 +21,7 @@ class ConfigurationController extends Controller
      */
     public function indexAction()
     {
-        $apiService = $this->get('tbn.api_generator.service.api_service');
-        $enabledEntities = $apiService->getEntitiesEnabled();
-
-        return array('availableEntities' => $enabledEntities);
-    }
-
-    /**
-     *
-     * @return unknown[]
-     */
-    public function checkEntitiesAction()
-    {
-        $apiService = $this->get('tbn.api_generator.service.api_service');
-        $enabledEntities = $apiService->getEntitiesEnabled();
+        $enabledEntities = $this->getParameter('tbn.api_generator.entities');
 
         return array('availableEntities' => $enabledEntities);
     }

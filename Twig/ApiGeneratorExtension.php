@@ -76,7 +76,7 @@ class ApiGeneratorExtension extends \Twig_Extension
      */
     public function isActionAllowed($className, $action)
     {
-        $isAllowed = $this->authorizationService->isEntityClassAllowedForRequest($className, $action);
+        $isAllowed = $this->authorizationService->isEntityAliasAllowedForRequest($className, $action);
 
         return $isAllowed;
     }

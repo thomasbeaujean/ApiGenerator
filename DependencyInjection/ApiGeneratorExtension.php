@@ -22,13 +22,33 @@ class ApiGeneratorExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        //set all config as parameter
-        foreach ($config as $key => $value) {
-            $container->setParameter('tbn.api_generator.'.$key, $value);
+        $entitiesConfiguration = [];
+
+        foreach ($config['entity'] as $entityAlias => $entityConfiguration) {
+            $entitiesConfiguration[$entityAlias] = $entityConfiguration;
+
+            //set the entity alias in the array
+            $entitiesConfiguration[$entityAlias]['alias'] = $entityAlias;
+
+            $defaultActions = [
+                'create',
+                'update',
+                'delete',
+                'get_one',
+                'get_one_deep',
+                'get_all',
+                'get_all_deep',
+            ];
+
+            //use default values
+            foreach ($defaultActions as $defaultAction) {
+                if (!isset($entitiesConfiguration[$entityAlias][$defaultAction])) {
+                    $entitiesConfiguration[$entityAlias][$defaultAction] = $config['default'][$defaultAction];
+                }
+            }
         }
 
-        $specifiedEntities = array_keys($config['entity']);
-        $container->setParameter('tbn.api_generator.specified_entities', $specifiedEntities);
+        $container->setParameter('tbn.api_generator.entities', $entitiesConfiguration);
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yml');

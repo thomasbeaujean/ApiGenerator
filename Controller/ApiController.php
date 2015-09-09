@@ -14,20 +14,20 @@ use tbn\JsonAnnotationBundle\Configuration\Json;
 class ApiController extends Controller
 {
     /**
-     * @Route("/{itemNamespace}",name="api_generator_save")
+     * @Route("/{entityAlias}",name="api_generator_save")
      *
      * @Method({"POST"})
      * @Json
      *
      * @param Request $request
-     * @param type    $itemNamespace
+     * @param string  $entityAlias
      * @return type
      */
-    public function handleAction(Request $request, $itemNamespace)
+    public function handleAction(Request $request, $entityAlias)
     {
         $apiService = $this->get('tbn.api_generator.service.api_service');
 
-        $entities = $apiService->handleAction($request, $this->decamelize($itemNamespace));
+        $entities = $apiService->handleAction($request, $entityAlias);
 
         $normalizer = $this->get('get_set_foreign_normalizer');
 
@@ -37,25 +37,23 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/{itemNamespace}",name="api_generator_all")
+     * @Route("/{entityAlias}",name="api_generator_all")
      *
      * @Method({"GET"})
      *
      * @Json
      *
-     * @param Request $request
-     * @param type    $itemNamespace
+     * @param string $entityAlias
      *
      * @return type
      */
-    public function getAllAction(Request $request, $itemNamespace)
+    public function getAllAction($entityAlias)
     {
-        $this->checkItemNamespaceAction($itemNamespace, 'get_all');
+        $this->checkEntityAliasAction($entityAlias, 'get_all');
 
         $apiService = $this->get('tbn.api_generator.service.api_service');
 
-        $entityClass = $this->decamelize($itemNamespace);
-        $entity = $apiService->retrieveAllEntities($entityClass);
+        $entity = $apiService->retrieveAllEntities($entityAlias);
         $normalizer = $this->get('get_set_foreign_normalizer');
 
         $data = $normalizer->normalize($entity);
@@ -64,25 +62,23 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/{itemNamespace}/deep",name="api_generator_all_deep")
+     * @Route("/{entityAlias}/deep",name="api_generator_all_deep")
      *
      * @Method({"GET"})
      *
      * @Json
      *
-     * @param Request $request
-     * @param type    $itemNamespace
+     * @param type $entityAlias
      *
      * @return type
      */
-    public function getAllDeepAction(Request $request, $itemNamespace)
+    public function getAllDeepAction($entityAlias)
     {
-        $this->checkItemNamespaceAction($itemNamespace, 'get_all_deep');
+        $this->checkEntityAliasAction($entityAlias, 'get_all_deep');
 
         $apiService = $this->get('tbn.api_generator.service.api_service');
 
-        $entityClass = $this->decamelize($itemNamespace);
-        $entity = $apiService->retrieveAllEntities($entityClass);
+        $entity = $apiService->retrieveAllEntities($entityAlias);
         $normalizer = $this->get('get_set_foreign_normalizer');
         $normalizer->setWatchDogLimit(9000);
         $normalizer->setDeepNormalization(true);
@@ -93,27 +89,25 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/{itemNamespace}/{id}",name="api_generator_one")
+     * @Route("/{entityAlias}/{id}",name="api_generator_one")
      *
      * @Method({"GET"})
      *
      * @Json
      *
-     * @param Request $request
-     * @param type    $itemNamespace
-     * @param type    $id
+     * @param string $entityAlias
+     * @param int    $id
      *
      * @return type
      */
-    public function getByIdAction(Request $request, $itemNamespace, $id)
+    public function getByIdAction($entityAlias, $id)
     {
-        $this->checkItemNamespaceAction($itemNamespace, 'get_one');
+        $this->checkEntityAliasAction($entityAlias, 'get_one');
 
         $apiService = $this->get('tbn.api_generator.service.api_service');
 
         $data['id'] = $id;
-        $entityClass = $this->decamelize($itemNamespace);
-        $entity = $apiService->retrieveEntity($entityClass, $data);
+        $entity = $apiService->retrieveEntity($entityAlias, $data);
         $normalizer = $this->get('get_set_foreign_normalizer');
 
         $data = $normalizer->normalize($entity);
@@ -122,27 +116,25 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/{itemNamespace}/{id}/deep",name="api_generator_one_deep")
+     * @Route("/{entityAlias}/{id}/deep",name="api_generator_one_deep")
      *
      * @Method({"GET"})
      *
      * @Json
      *
-     * @param Request $request
-     * @param type    $itemNamespace
-     * @param type    $id
+     * @param string $entityAlias
+     * @param int    $id
      *
      * @return type
      */
-    public function getByIdDeepAction(Request $request, $itemNamespace, $id)
+    public function getByIdDeepAction($entityAlias, $id)
     {
-        $this->checkItemNamespaceAction($itemNamespace, 'get_one_deep');
+        $this->checkEntityAliasAction($entityAlias, 'get_one_deep');
 
         $apiService = $this->get('tbn.api_generator.service.api_service');
 
         $data['id'] = $id;
-        $entityClass = $this->decamelize($itemNamespace);
-        $entity = $apiService->retrieveEntity($entityClass, $data);
+        $entity = $apiService->retrieveEntity($entityAlias, $data);
         $normalizer = $this->get('get_set_foreign_normalizer');
         $normalizer->setDeepNormalization(true);
 
@@ -152,26 +144,24 @@ class ApiController extends Controller
     }
 
     /**
-     * @Route("/{itemNamespace}/{id}",name="api_generator_delete")
+     * @Route("/{entityAlias}/{id}",name="api_generator_delete")
      *
      * @Method({"DELETE"})
      *
      * @Json
      *
-     * @param Request $request
-     * @param type    $itemNamespace
-     * @param type    $id
+     * @param string $entityAlias
+     * @param int    $id
      * @return type
      */
-    public function deleteByIdAction(Request $request, $itemNamespace, $id)
+    public function deleteByIdAction($entityAlias, $id)
     {
-        $this->checkItemNamespaceAction($itemNamespace, 'delete');
+        $this->checkEntityAliasAction($entityAlias, 'delete');
 
         $apiService = $this->get('tbn.api_generator.service.api_service');
 
         $data['id'] = $id;
-        $entityClass = $this->decamelize($itemNamespace);
-        $entity = $apiService->retrieveEntity($entityClass, $data);
+        $entity = $apiService->retrieveEntity($entityAlias, $data);
 
         $em = $this->get('doctrine')->getManager();
         $em->remove($entity);
@@ -182,48 +172,13 @@ class ApiController extends Controller
 
     /**
      *
-     * @param string $itemNamespace
-     * @return string
-     */
-    protected function decamelize($itemNamespace)
-    {
-        $startWithLowerCase = false;
-        if (substr($itemNamespace, 0, 1) === '-') {
-            $startWithLowerCase = true;
-        }
-
-        $words = explode('--', $itemNamespace);
-        $camelizedWords = array();
-
-        foreach ($words as $word) {
-            $decamelizedSubword = '';
-            $subwords = explode('-', $word);
-
-            foreach ($subwords as $subword) {
-                $decamelizedSubword .= ucfirst($subword);
-            }
-
-            $camelizedWords[] = $decamelizedSubword;
-        }
-
-        $decamelized = implode('\\', $camelizedWords);
-
-        if ($startWithLowerCase) {
-            $decamelized = lcfirst($decamelized);
-        }
-
-        return $decamelized;
-    }
-
-    /**
-     *
-     * @param string $itemNamespace
+     * @param string $entityAlias
      * @param string $action
      * @throws \Exception
      */
-    protected function checkItemNamespaceAction($itemNamespace, $action)
+    protected function checkEntityAliasAction($entityAlias, $action)
     {
         $authorizationService = $this->get('tbn.api_generator.service.authorization_service');
-        $authorizationService->checkItemNamespaceAction($itemNamespace, $action);
+        $authorizationService->checkEntityAliasAction($entityAlias, $action);
     }
 }

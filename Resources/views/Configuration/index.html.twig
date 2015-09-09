@@ -20,28 +20,22 @@
 	<td>Update</td>
 	<td>Delete</td>
 </thead>
-<tr>
-	<td>ANY</td>
-	<td></td>
-	<td class="{{ "ANY"|apiGeneratorAllowed('get_one') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('get_one') ? 'Yes':'No' }}</td>
-	<td class="{{ "ANY"|apiGeneratorAllowed('get_one_deep') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('get_one_deep') ? 'Yes':'No' }}</td>
-	<td class="{{ "ANY"|apiGeneratorAllowed('get_all') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('get_all') ? 'Yes':'No' }}</td>
-	<td class="{{ "ANY"|apiGeneratorAllowed('get_all_deep') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('get_all_deep') ? 'Yes':'No' }}</td>
-	<td class="{{ "ANY"|apiGeneratorAllowed('create') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('create') ? 'Yes':'No' }}</td>
-	<td class="{{ "ANY"|apiGeneratorAllowed('update') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('update') ? 'Yes':'No' }}</td>
-	<td class="{{ "ANY"|apiGeneratorAllowed('delete') ? 'success':'danger' }}">{{ "ANY"|apiGeneratorAllowed('delete') ? 'Yes':'No' }}</td>
-</tr>
+
+{% macro displayBoolean(value) %}
+    <td class="{{ value ? 'success':'danger' }}">{{ value ? 'Yes':'No' }}</td>
+{% endmacro %}
+
 {% for availableEntity in availableEntities %}
 <tr>
-	<td>{{ availableEntity }}</td>
-	<td>{{ availableEntity|apiGeneratorNormalize }}</td>
-	<td class="{{ availableEntity|apiGeneratorAllowed('get_one') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('get_one') ? 'Yes':'No' }}</td>
-	<td class="{{ availableEntity|apiGeneratorAllowed('get_one_deep') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('get_one_deep') ? 'Yes':'No' }}</td>
-	<td class="{{ availableEntity|apiGeneratorAllowed('get_all') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('get_all') ? 'Yes':'No' }}</td>
-	<td class="{{ availableEntity|apiGeneratorAllowed('get_all_deep') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('get_all_deep') ? 'Yes':'No' }}</td>
-	<td class="{{ availableEntity|apiGeneratorAllowed('create') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('create') ? 'Yes':'No' }}</td>
-	<td class="{{ availableEntity|apiGeneratorAllowed('update') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('update') ? 'Yes':'No' }}</td>
-	<td class="{{ availableEntity|apiGeneratorAllowed('delete') ? 'success':'danger' }}">{{ availableEntity|apiGeneratorAllowed('delete') ? 'Yes':'No' }}</td>
+    <td>{{ availableEntity.class }}</td>
+    <td>{{ availableEntity.alias }}</td>
+    {{ _self.displayBoolean(availableEntity.get_one) }}
+    {{ _self.displayBoolean(availableEntity.get_one_deep) }}
+    {{ _self.displayBoolean(availableEntity.get_all) }}
+    {{ _self.displayBoolean(availableEntity.get_all_deep) }}
+    {{ _self.displayBoolean(availableEntity.create) }}
+    {{ _self.displayBoolean(availableEntity.update) }}
+    {{ _self.displayBoolean(availableEntity.delete) }}
 </tr>
 {% endfor %}
 </table>

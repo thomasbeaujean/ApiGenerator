@@ -11,38 +11,37 @@ namespace tbn\ApiGeneratorBundle\Services;
  */
 class AuthorizationService
 {
-    protected $allRights;
     protected $entityRights;
-    protected $specifiedEntities;
 
     /**
      * Constructor
      *
-     * @param array $allRights
      * @param array $entityRights
-     * @param array $specifiedEntities
      */
-    public function __construct($allRights, $entityRights, $specifiedEntities)
+    public function __construct($entityRights)
     {
-        $this->allRights = $allRights;
         $this->entityRights = $entityRights;
-        $this->specifiedEntities = $specifiedEntities;
     }
 
     /**
      * Is the action for the entity class allowed
-     * @param string $entityClass
+     *
+     * @param string $entityAlias
      * @param string $action
+     *
      * @return boolean
      */
-    public function isEntityClassAllowedForRequest($entityClass, $action)
+    public function isEntityAliasAllowedForRequest($entityAlias, $action)
     {
         $isAllowed = false;
 
-        if ($this->isEntityClassSpecified($entityClass)) {
-            $isAllowed = $this->isEntityClassAllowedForRequestForEntity($entityClass, $action);
+        if ($this->isEntityAliasSpecified($entityAlias)) {
+            if ($this->entityRights[$entityAlias][$action]) {
+                $isAllowed = true;
+            }
         } else {
-            $isAllowed = $this->isEntityClassAllowedForRequestForAll($action);
+            zdebug($this->entityRights);
+            throw new \Exception('The entity alias ['.$entityAlias.'] is not configured for the api-generator bundle');
         }
 
         return $isAllowed;
@@ -50,67 +49,31 @@ class AuthorizationService
 
     /**
      *
-     * @param string $itemNamespace
+     * @param string $entityAlias
      * @param string $action
      * @throws \Exception
      */
-    public function checkItemNamespaceAction($itemNamespace, $action)
+    public function checkEntityAliasAction($entityAlias, $action)
     {
-        if ($this->isEntityClassAllowedForRequest($itemNamespace, $action) === false) {
-            throw new \Exception('The entity ['.$itemNamespace.'] is not allowed by the api generator for '.$action);
+        if ($this->isEntityAliasAllowedForRequest($entityAlias, $action) === false) {
+            throw new \Exception('The entity alias ['.$entityAlias.'] is not allowed by the api generator for '.$action);
         }
     }
 
     /**
-     * Is the action for any entity class allowed
+     * Is the action for any entity alias allowed
      *
-     * @param string $action
+     * @param string $entityAlias
      * @return boolean
      */
-    protected function isEntityClassAllowedForRequestForAll($action)
-    {
-        $isAllowed = false;
-
-        if ($this->allRights[$action]) {
-            $isAllowed = true;
-        }
-
-        return $isAllowed;
-    }
-
-    /**
-     * Is the action for any entity class allowed
-     *
-     * @param string $entityClass
-     * @return boolean
-     */
-    protected function isEntityClassSpecified($entityClass)
+    protected function isEntityAliasSpecified($entityAlias)
     {
         $isSpecified = false;
 
-        if (in_array($entityClass, $this->specifiedEntities)) {
+        if (isset($this->entityRights[$entityAlias])) {
             $isSpecified = true;
         }
 
         return $isSpecified;
-    }
-
-    /**
-     * Is the action for any entity class allowed
-     *
-     * @param string $entityClass
-     * @param string $action
-     *
-     * @return boolean
-     */
-    protected function isEntityClassAllowedForRequestForEntity($entityClass, $action)
-    {
-        $isAllowed = false;
-
-        if ($this->entityRights[$entityClass][$action]) {
-            $isAllowed = true;
-        }
-
-        return $isAllowed;
     }
 }
