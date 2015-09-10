@@ -78,11 +78,13 @@ class ApiService
     /**
      *
      * @param Request $request
-     * @param unknown $itemNamespace
+     * @param string  $entityAlias
      * @return \tbn\ApiGeneratorBundle\Services\NULL[][]
      */
-    public function handleAction(Request $request, $itemNamespace)
+    public function handleAction(Request $request, $entityAlias)
     {
+        $itemNamespace = $this->getClassByEntityAlias($entityAlias);
+
         $parameters = $request->request->all();
 
         if (count($parameters) === 0) {
@@ -437,7 +439,16 @@ class ApiService
 
                 //the field has been sent
                 if (array_key_exists($fieldName, $data)) {
-                    $value = $data[$fieldName];
+                    $originalValue = $data[$fieldName];
+
+                    $fieldType = $fieldMapping['type'];
+
+                    if ($fieldType === 'time') {
+                        $value = $this->convertTimeValue($originalValue);
+                    } else {
+                        $value = $originalValue;
+                    }
+
 
                     if (!$nullable) {
                         if ($value === null) {
@@ -458,6 +469,25 @@ class ApiService
 
     /**
      *
+     * @param type $originalValue
+     *
+     * @return Datetime
+     * @throws \Exception
+     */
+    protected function convertTimeValue($originalValue)
+    {
+        $timeFormat = 'H:i';
+        $value = \DateTime::createFromFormat($timeFormat, $originalValue);
+
+        if ($value === false) {
+            throw new \Exception('The value ['.$originalValue.'] for the field ['.$fieldName.'] is not allowed; entity ['.$entityClass.']: Expected format ['.$timeFormat.']');
+        }
+
+        return $value;
+    }
+
+    /**
+     *
      * @param string $entityClass
      * @param array $data
      * @return object The entity
@@ -467,8 +497,6 @@ class ApiService
         $entity = $this->retrieveEntityByClass($entityClass, $data);
 
         $meta = $this->getMetadata($entityClass);
-
-        $generatorType = $meta->generatorType;
 
         //
         $this->setFields($entity, $entityClass, $data);
