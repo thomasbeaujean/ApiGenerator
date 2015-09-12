@@ -14,7 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 class ConfigurationController extends Controller
 {
     /**
-     * @Route("/apigenerator-configuration")
+     * @Route("/_apigenerator-configuration")
      * @Template
      *
      * @return type
