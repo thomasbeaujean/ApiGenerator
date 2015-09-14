@@ -444,7 +444,7 @@ class ApiService
                     $fieldType = $fieldMapping['type'];
 
                     if ($fieldType === 'time') {
-                        $value = $this->convertTimeValue($originalValue);
+                        $value = $this->revertTimeValue($originalValue);
                     } else {
                         $value = $originalValue;
                     }
@@ -474,9 +474,9 @@ class ApiService
      * @return Datetime
      * @throws \Exception
      */
-    protected function convertTimeValue($originalValue)
+    protected function revertTimeValue($originalValue)
     {
-        $timeFormat = 'H:i';
+        $timeFormat = 'H:i:s';
         $value = \DateTime::createFromFormat($timeFormat, $originalValue);
 
         if ($value === false) {
