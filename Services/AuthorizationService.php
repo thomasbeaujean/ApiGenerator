@@ -40,7 +40,6 @@ class AuthorizationService
                 $isAllowed = true;
             }
         } else {
-            zdebug($this->entityRights);
             throw new \Exception('The entity alias ['.$entityAlias.'] is not configured for the api-generator bundle');
         }
 

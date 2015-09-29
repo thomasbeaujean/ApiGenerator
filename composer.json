@@ -1,11 +1,23 @@
 {
     "name": "tbn/apigenerator-bundle",
     "description": "Get an ajax crud api out of the box",
-    "require": {
-        "tbn/getsetforeignnormalizer-bundle": ">=2.0.0"
+    "require-dev": {
+        "symfony/class-loader"          : "2.3.*",
+        "phpunit/phpunit"               : "~4.4",
+        "php"                           : ">=5.3.0",
+        "symfony/symfony"               : ">=2.7",
+        "doctrine/orm"                  : "~2.2,>=2.2.3,<2.5",
+        "doctrine/doctrine-bundle"      : ">=1.4",
+        "twig/extensions"               : ">=1.0",
+        "sensio/distribution-bundle"    : ">=4.0",
+        "sensio/framework-extra-bundle" : "~3.0,>=3.0.2",
+        "nelmio/alice"                  : ">=2.1",
+        "doctrine/data-fixtures"        : "^1.1"
     },
     "autoload": {
-        "psr-0": { "tbn\\ApiGeneratorBundle": "" }
+        "psr-4": { "tbn\\ApiGeneratorBundle\\": "" }
     },
-    "target-dir": "tbn/ApiGeneratorBundle"
+    "require": {
+        "tbn/getsetforeignnormalizer-bundle": ">=2.0.0"
+    }
 }

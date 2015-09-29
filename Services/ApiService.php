@@ -5,6 +5,7 @@ namespace tbn\ApiGeneratorBundle\Services;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Symfony\Component\HttpFoundation\Request;
 use tbn\DoctrineRelationVisualizerBundle\Entity\Entity;
+use tbn\ApiGeneratorBundle\Exception\MethodNotFoundException;
 
 /**
  *
@@ -50,6 +51,10 @@ class ApiService
         $entityClass = $this->getClassByEntityAlias($entityAlias);
         $entity = $this->retrieveEntityByClass($entityClass, $data);
 
+        if ($entity === null) {
+            throw new \Exception('The entity ['.$entityAlias.'] with the data ['.print_r($data, true).'] was not found.');
+        }
+
         return $entity;
     }
 
@@ -91,12 +96,14 @@ class ApiService
             throw new \Exception('No data was prodived');
         }
 
+        zdebug($parameters);
         $entities = array();
-
+        zdebug($entityAlias);
         foreach ($parameters as $data) {
             $entity = $this->getEntityByData($itemNamespace, $data);
             $entities[] = $entity;
         }
+        zdebug($entities);
 
         //validate assertions
         $this->validateEntities($entities);
@@ -104,7 +111,7 @@ class ApiService
         //persist before check authorization
         //because the authorization uses doctrine to know if we create update or delete
         $this->persistEntities($entities);
-        $this->checkEntitiesAuthorization($entities, $itemNamespace);
+        $this->checkEntitiesAuthorization($entities, $entityAlias);
 
         //finally flush entities
         $em = $this->doctrine->getManager();
@@ -154,8 +161,24 @@ class ApiService
             }
 
             if (!$delete) {
-                //update
-                $entity = $this->updateEntity($entityClass, $data);
+                $entity = $this->retrieveEntityByClass($entityClass, $data);
+
+                //the post contains the id
+                if ($this->hasGenerator($entityClass)) {
+                    if ($entity === null) {
+                        throw new \Exception('The entity ['.$entityClass.'] with the data ['.print_r($data, true).'] was not found.');
+                    }
+
+                    $entity = $this->updateEntity($entityClass, $entity, $data);
+                } else {
+                    //update
+                    if ($entity === null) {
+                        $entity = $this->createEntity($entityClass, $data);
+                    } else {
+                        $entity = $this->updateEntity($entityClass, $entity, $data);
+                    }
+                }
+
             } else {
                 $this->deleteEntity($data);
             }
@@ -192,19 +215,15 @@ class ApiService
 
         $entity = $repository->findOneBy($criteria);
 
-        if ($entity === null) {
-            throw new \Exception('The entity ['.$entityClass.'] with the id ['.print_r($criteria, true).'] was not found.');
-        }
-
         return $entity;
     }
 
     /**
      * Check that the action is allowed
-     * @param array $entities
-     * @param string $itemNamespace
+     * @param array  $entities
+     * @param string $entityAlias
      */
-    protected function checkEntitiesAuthorization($entities, $itemNamespace)
+    protected function checkEntitiesAuthorization($entities, $entityAlias)
     {
         $em = $this->doctrine->getManager();
         $uow = $em->getUnitOfWork();
@@ -213,13 +232,13 @@ class ApiService
 
         foreach ($entities as $entity) {
             if ($uow->isScheduledForInsert($entity)) {
-                $authorizationService->checkItemNamespaceAction($itemNamespace, 'create');
+                $authorizationService->isEntityAliasAllowedForRequest($entityAlias, 'create');
             }
             if ($uow->isScheduledForUpdate($entity)) {
-                $authorizationService->checkItemNamespaceAction($itemNamespace, 'update');
+                $authorizationService->isEntityAliasAllowedForRequest($entityAlias, 'update');
             }
             if ($uow->isScheduledForDelete($entity)) {
-                $authorizationService->checkItemNamespaceAction($itemNamespace, 'delete');
+                $authorizationService->isEntityAliasAllowedForRequest($itemNamespace, 'delete');
             }
         }
     }
@@ -312,7 +331,7 @@ class ApiService
     /**
      * Get the identifiers
      *
-     * @param String $itemNamespace
+     * @param String $entityClass
      *
      * @return array The identifiers
      *
@@ -323,6 +342,29 @@ class ApiService
 
         return $meta->identifier;
     }
+
+
+    /**
+     * Get the id generator
+     *
+     * @param String $entityClass
+     *
+     * @return array The id generator
+     *
+     */
+    protected function hasGenerator($entityClass)
+    {
+        $meta = $this->getMetadata($entityClass);
+
+        if (ClassMetadataInfo::GENERATOR_TYPE_NONE === $meta->generatorType) {
+            $hasGenerator = false;
+        } else {
+            $hasGenerator = true;
+        }
+
+        return $hasGenerator;
+    }
+
 
     /**
      *
@@ -386,7 +428,6 @@ class ApiService
                         }
                     }
 
-
                     //the targeted entity
                     $targetEntityClass = $associationMapping['targetEntity'];
 
@@ -396,14 +437,22 @@ class ApiService
 
                         if (!$nullable) {
                             if ($value === null) {
-                                throw new \Exception('The value NULL for the field ['.$associationName.'] is not allowed; enity ['.$entityClass.']');
+                                throw new \Exception('The value NULL for the field ['.$associationName.'] is not allowed; entity ['.$entityClass.']');
                             }
                         }
 
-                        //Get the associated entity
-                        $associatedEntity = $this->getEntityByData($targetEntityClass, $value);
+                        if ($value !== null) {
+                            //Get the associated entity
+                            $associatedEntity = $this->getEntityByData($targetEntityClass, $value);
+                        } else {
+                            $associatedEntity = null;
+                        }
 
                         $method = 'set'.ucfirst($associationName);
+
+                        if (!method_exists($entity, $method)) {
+                            throw new MethodNotFoundException('The entity '.$entityClass.' requires to the '.$method.' method');
+                        }
 
                         //set The value
                         call_user_method($method, $entity, $associatedEntity);
@@ -458,6 +507,9 @@ class ApiService
 
                     $method = 'set'.ucfirst($fieldName);
 
+                    if (!method_exists($entity, $method)) {
+                        throw new MethodNotFoundException('The entity '.$entityClass.' requires to the '.$method.' method');
+                    }
                     //set The value
                     call_user_method($method, $entity, $value);
                 }
@@ -492,10 +544,8 @@ class ApiService
      * @param array $data
      * @return object The entity
      */
-    protected function updateEntity($entityClass, $data)
+    protected function updateEntity($entityClass, $entity, $data)
     {
-        $entity = $this->retrieveEntityByClass($entityClass, $data);
-
         $meta = $this->getMetadata($entityClass);
 
         //

@@ -23,59 +23,6 @@ class AuthorizationServiceTest extends \PHPUnit_Framework_TestCase
             'get_all_deep');
     }
 
-    /*
-     *
-     */
-    public function testGeneralRights()
-    {
-        $rights = $this->rights;
-
-        $allRights = array(
-            'create' => false,
-            'update' => false,
-            'delete' => false,
-            'get_one' => true,
-            'get_one_deep' => true,
-            'get_all' => true,
-            'get_all_deep' => true
-        );
-
-        $specifiedEntities = array();
-        $entityRights = array();
-
-        foreach ($rights as $right) {
-            $allRights[$right] = true;
-
-            $authorizationService = new AuthorizationService($allRights, $entityRights, $specifiedEntities);
-
-            $exceptionRaised = false;
-
-            try {
-                $authorizationService->checkItemNamespaceAction('ANY', $right);
-            } catch (\Exception $ex) {
-                $exceptionRaised = true;
-            }
-
-            $this->assertFalse($exceptionRaised, 'Exception raised for ANY and action: '.$right);
-        }
-
-        foreach ($rights as $right) {
-            $allRights[$right] = false;
-
-            $authorizationService = new AuthorizationService($allRights, $entityRights, $specifiedEntities);
-
-            $exceptionRaised = false;
-
-            try {
-                $authorizationService->checkItemNamespaceAction('ANY', $right);
-            } catch (\Exception $ex) {
-                $exceptionRaised = true;
-            }
-
-            $this->assertTrue($exceptionRaised, 'Exception not raised for ANY and action: '.$right);
-        }
-    }
-
 
     /*
      *
@@ -113,7 +60,7 @@ class AuthorizationServiceTest extends \PHPUnit_Framework_TestCase
             $exceptionRaised = false;
 
             try {
-                $authorizationService->checkItemNamespaceAction('Item', $right);
+                $authorizationService->isEntityAliasAllowedForRequest('Item', $right);
             } catch (\Exception $ex) {
                 $exceptionRaised = true;
             }
@@ -129,7 +76,7 @@ class AuthorizationServiceTest extends \PHPUnit_Framework_TestCase
             $exceptionRaised = false;
 
             try {
-                $authorizationService->checkItemNamespaceAction('Item', $right);
+                $authorizationService->isEntityAliasAllowedForRequest('Item', $right);
             } catch (\Exception $ex) {
                 $exceptionRaised = true;
             }
