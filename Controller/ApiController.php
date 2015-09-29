@@ -80,10 +80,8 @@ class ApiController extends Controller
 
         $entity = $apiService->retrieveAllEntities($entityAlias);
         $normalizer = $this->get('get_set_foreign_normalizer');
-        $normalizer->setWatchDogLimit(9000);
-        $normalizer->setDeepNormalization(true);
 
-        $data = $normalizer->normalize($entity);
+        $data = $normalizer->normalize($entity, true);
 
         return $data;
     }
@@ -136,9 +134,8 @@ class ApiController extends Controller
         $data['id'] = $id;
         $entity = $apiService->retrieveEntity($entityAlias, $data);
         $normalizer = $this->get('get_set_foreign_normalizer');
-        $normalizer->setDeepNormalization(true);
 
-        $data = $normalizer->normalize($entity);
+        $data = $normalizer->normalize($entity, true);
 
         return $data;
     }
