@@ -103,14 +103,40 @@ class ApiServiceTest extends \tbn\ApiGeneratorBundle\Tests\PHPUnitKernelAware
         $entityAlias = 'tcreference';
 
         $request = new Request();
-        $request->request->set('data', ['id' => '3', 'name' => 'create']);
+        $request->request->replace([['id' => '3', 'name' => 'create']]);
         $entities = $apiService->handleAction($request, $entityAlias);
 
         $this->assertNotNull($entities);
         $this->assertNotEmpty($entities);
+        $this->assertEquals(count($entities), 1);
         $entity = $entities[0];
         $this->assertEquals($entity->getId(), '3');
         $this->assertEquals($entity->getName(), 'create');
+    }
+
+    /**
+     *
+     */
+    public function testCreateSeveralTcReference()
+    {
+        $apiService = $this->getService('tbn.api_generator.service.api_service');
+        $entityAlias = 'tcreference';
+
+        $request = new Request();
+        $request->request->replace([['id' => '3', 'name' => 'create3'], ['id' => '4', 'name' => 'create4']]);
+        $entities = $apiService->handleAction($request, $entityAlias);
+
+        $this->assertNotNull($entities);
+        $this->assertNotEmpty($entities);
+
+        $this->assertEquals(count($entities), 2);
+
+        $entity = $entities[0];
+        $this->assertEquals($entity->getId(), '3');
+        $this->assertEquals($entity->getName(), 'create3');
+        $entity = $entities[1];
+        $this->assertEquals($entity->getId(), '4');
+        $this->assertEquals($entity->getName(), 'create4');
     }
 
     /**
