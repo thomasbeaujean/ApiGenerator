@@ -1,6 +1,6 @@
 <?php
 
-namespace tbn\GetSetForeignNormalizerBundle\Tests;
+namespace tbn\ApiGeneratorBundle\Tests;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 

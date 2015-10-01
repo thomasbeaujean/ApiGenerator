@@ -23,6 +23,7 @@ class AppKernel extends Kernel
 
             new tbn\GetSetForeignNormalizerBundle\GetSetForeignNormalizerBundle(),
             new tbn\ApiGeneratorBundle\Tests\Fixtures\AppTestBundle\AppTestBundle(),
+            new tbn\ApiGeneratorBundle\ApiGeneratorBundle(),
         );
     }
 

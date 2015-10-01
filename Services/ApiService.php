@@ -511,7 +511,7 @@ class ApiService
                         throw new MethodNotFoundException('The entity '.$entityClass.' requires to the '.$method.' method');
                     }
                     //set The value
-                    call_user_method($method, $entity, $value);
+                    call_user_func(array($entity, $method), $value);
                 }
             }
         }
