@@ -54,3 +54,21 @@ api_generator:
             get_one_deep: true #optionnal
             get_all: true #optionnal
             get_all_deep: true #optionnal
+        category: #the entity alias
+            class: "tbn\\ApiGeneratorBundle\\Tests\\Fixtures\\AppTestBundle\\Entity\\Category" #mandatory
+            create: false  #optionnal
+            update: false #optionnal
+            delete: false  #optionnal
+            get_one: true #optionnal
+            get_one_deep: true #optionnal
+            get_all: true #optionnal
+            get_all_deep: true #optionnal
+        product: #the entity alias
+            class: "tbn\\ApiGeneratorBundle\\Tests\\Fixtures\\AppTestBundle\\Entity\\Product" #mandatory
+            create: true  #optionnal
+            update: true #optionnal
+            delete: true  #optionnal
+            get_one: true #optionnal
+            get_one_deep: true #optionnal
+            get_all: true #optionnal
+            get_all_deep: true #optionnal

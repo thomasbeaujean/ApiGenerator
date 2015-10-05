@@ -6,6 +6,8 @@ services:
             - "@tbn.api_generator.service.authorization_service"
             - "@doctrine"
             - "@validator"
+            - "@tbn.api_generator.service.entity_service"
+            - "@tbn.api_generator.service.retrieve_service"
     tbn.api_generator.twig.acme_extension:
         class: "tbn\\ApiGeneratorBundle\\Twig\\ApiGeneratorExtension"
         arguments:
@@ -16,3 +18,14 @@ services:
         class: "tbn\\ApiGeneratorBundle\\Services\\AuthorizationService"
         arguments:
             - "%tbn.api_generator.entities%"
+    tbn.api_generator.service.retrieve_service:
+        class: "tbn\\ApiGeneratorBundle\\Services\\RetrieveService"
+        arguments:
+            - "%tbn.api_generator.entities%"
+            - "@doctrine"
+            - "@tbn.api_generator.service.entity_service"
+    tbn.api_generator.service.entity_service:
+        class: "tbn\\ApiGeneratorBundle\\Services\\EntityService"
+        arguments:
+            - "%tbn.api_generator.entities%"
+            - "@doctrine"

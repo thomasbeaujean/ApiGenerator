@@ -9,6 +9,7 @@ trait IdTrait
     /**
      * @ORM\Id
      * @ORM\Column(type="integer",nullable=false)
+     * @ORM\GeneratedValue
      */
     protected $id;
 

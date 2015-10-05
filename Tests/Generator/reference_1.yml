@@ -6,3 +6,27 @@ tbn\ApiGeneratorBundle\Tests\Fixtures\AppTestBundle\Entity\TcReference:
     simple2:
         id: 2
         name: "name2"
+
+tbn\ApiGeneratorBundle\Tests\Fixtures\AppTestBundle\Entity\Category:
+    car:
+        id: 1
+        name: "Car"
+    clothe:
+        id: 2
+        name: "Clothe"
+    sports:
+        id: 3
+        name: "Sports"
+tbn\ApiGeneratorBundle\Tests\Fixtures\AppTestBundle\Entity\Product:
+    product_catus:
+        name: "Cactus"
+        category: @car
+    product_c4:
+        name: "C4"
+        category: @car
+    product_skate:
+        name: "Skate"
+        category: @sports
+    product_kitesurf:
+        name: "Kite-Surf"
+        category: @sports

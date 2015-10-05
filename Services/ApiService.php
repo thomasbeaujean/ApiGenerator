@@ -20,6 +20,8 @@ class ApiService
     protected $validator = null;
     protected $authorizationService = null;
     protected $entityRights = null;
+    protected $entityService = null;
+    protected $retrieveService = null;
 
     /**
      *
@@ -27,57 +29,16 @@ class ApiService
      * @param AuthorizationService $authorizationService
      * @param type                 $doctrine
      * @param type                 $validator
+     * @param EntityService        $entityService
      */
-    public function __construct(array $entityRights, AuthorizationService $authorizationService, $doctrine, $validator)
+    public function __construct(array $entityRights, AuthorizationService $authorizationService, $doctrine, $validator, EntityService $entityService, RetrieveService $retrieveService)
     {
         $this->authorizationService = $authorizationService;
         $this->doctrine = $doctrine;
         $this->validator = $validator;
         $this->entityRights = $entityRights;
-    }
-
-    /**
-     * Retrieve an entity by the identifier listed in the data
-     *
-     * @param string $entityAlias
-     * @param object $data
-     *
-     * @throws Exception
-     *
-     * @return Entity
-     */
-    public function retrieveEntity($entityAlias, $data)
-    {
-        $entityClass = $this->getClassByEntityAlias($entityAlias);
-        $entity = $this->retrieveEntityByClass($entityClass, $data);
-
-        if ($entity === null) {
-            throw new \Exception('The entity ['.$entityAlias.'] with the data ['.print_r($data, true).'] was not found.');
-        }
-
-        return $entity;
-    }
-
-    /**
-     * Retrieve an entity by the identifier listed in the data
-     *
-     * @param string $entityAlias
-     *
-     * @throws Exception
-     *
-     * @return array
-     */
-    public function retrieveAllEntities($entityAlias)
-    {
-        $entityClass = $this->getClassByEntityAlias($entityAlias);
-
-        $doctrine = $this->doctrine;
-        $em = $doctrine->getManager();
-        $repository = $em->getRepository($entityClass);
-
-        $entities = $repository->findAll();
-
-        return $entities;
+        $this->entityService = $entityService;
+        $this->retrieveService = $retrieveService;
     }
 
     /**
@@ -88,103 +49,121 @@ class ApiService
      */
     public function handleAction(Request $request, $entityAlias)
     {
-        $itemNamespace = $this->getClassByEntityAlias($entityAlias);
+        $data = $request->request->all();
 
-        $parameters = $request->request->all();
-
-        if (count($parameters) === 0) {
-            throw new \Exception('No data was prodived');
+        if (count($data) === 0) {
+            throw new \Exception('No data were prodived');
         }
 
-        zdebug($parameters);
-        $entities = array();
-        zdebug($entityAlias);
-        foreach ($parameters as $data) {
-            $entity = $this->getEntityByData($itemNamespace, $data);
-            $entities[] = $entity;
+        $dataEntities = $this->getEntitiesByData($entityAlias, $data);
+
+        $dataToCreate = $dataEntities['create'];
+        $dataToUpdate = $dataEntities['update'];
+        $dataToDelete = $dataEntities['delete'];
+
+        unset($dataEntities);
+
+        $toCreate = [];
+        $toUpdate = [];
+
+        foreach ($dataToCreate as $entityData) {
+            $toCreate[] = $this->createEntity($entityAlias, $entityData);
         }
-        zdebug($entities);
+
+        foreach ($dataToUpdate as $entityData) {
+            $entity = $this->retrieveService->retrieveEntity($entityAlias, $entityData);
+            $toUpdate[] = $this->updateEntity($entityAlias, $entity, $entityData);
+        }
 
         //validate assertions
-        $this->validateEntities($entities);
+        $this->validateEntities($toCreate);
+        //validate assertions
+        $this->validateEntities($toUpdate);
 
         //persist before check authorization
         //because the authorization uses doctrine to know if we create update or delete
-        $this->persistEntities($entities);
+        $this->persistEntities($toCreate);
+        $this->persistEntities($toUpdate);
+
+        $entities = array_merge($toCreate, $toUpdate);
+
         $this->checkEntitiesAuthorization($entities, $entityAlias);
 
         //finally flush entities
         $em = $this->doctrine->getManager();
-        $em->flush();
+        $em->flush($entities);
 
         return $entities;
     }
 
     /**
      *
-     * @param string $entityClass
+     * @param string $entityAlias
      * @param array  $data
      *
      * @return NULL
      */
-    public function getEntityByData($entityClass, $data)
+    public function getEntitiesByData($entityAlias, array $data)
     {
-        if (!is_array($data)) {
-            throw new \Exception('The data for the item '.$entityClass.' must be an array. Data found ['.print_r($data, true).']');
-        }
+        $entityClass = $this->entityService->getClassByEntityAlias($entityAlias);
 
-        $entityClassIdentifiers = $this->getIdentifiers($entityClass);
+        $toCreate = [];
+        $toUpdate = [];
+        $toDelete = [];
 
-        $containsIdentifier = true;
+        $entityClassIdentifiers = $this->entityService->getIdentifiers($entityClass);
 
-        foreach ($entityClassIdentifiers as $entityClassIdentifier) {
-            if (!array_key_exists($entityClassIdentifier, $data)) {
-                $containsIdentifier = false;
-            } else {
-                if ($data[$entityClassIdentifier] === null) {
+        $hasGenerator = $this->entityService->hasGenerator($entityClass);
+
+        foreach ($data as $row) {
+            $containsIdentifier = true;
+
+            foreach ($entityClassIdentifiers as $entityClassIdentifier) {
+                if (!array_key_exists($entityClassIdentifier, $row)) {
                     $containsIdentifier = false;
-                }
-            }
-        }
-
-        $entity = null;
-
-        //new entity
-        if ($containsIdentifier === false) {
-            $entity = $this->createEntity($entityClass, $data);
-        } else {
-            $delete = false;
-            if (array_key_exists('_delete', $data)) {
-                if ($data['delete'] === true) {
-                    $delete = true;
-                }
-            }
-
-            if (!$delete) {
-                $entity = $this->retrieveEntityByClass($entityClass, $data);
-
-                //the post contains the id
-                if ($this->hasGenerator($entityClass)) {
-                    if ($entity === null) {
-                        throw new \Exception('The entity ['.$entityClass.'] with the data ['.print_r($data, true).'] was not found.');
-                    }
-
-                    $entity = $this->updateEntity($entityClass, $entity, $data);
                 } else {
-                    //update
-                    if ($entity === null) {
-                        $entity = $this->createEntity($entityClass, $data);
-                    } else {
-                        $entity = $this->updateEntity($entityClass, $entity, $data);
+                    if ($row[$entityClassIdentifier] === null) {
+                        $containsIdentifier = false;
                     }
                 }
+            }
 
+            //new entity
+            if ($containsIdentifier === false) {
+                if ($hasGenerator === false) {
+                    throw new \Exception('The entity ['.$entityClass.'] does not contains any identifier and does not have any ID generator.');
+                }
+                //there is no identifier
+                //so the user want to create a new entity using the generator
+                $toCreate[] = $row;
             } else {
-                $this->deleteEntity($data);
+                if (array_key_exists('__delete', $row)) {
+                    $toDelete[] = $row;
+                } else {
+                    $entity = $this->retrieveEntityByClass($entityClass, $row);
+
+                    //no entity found, so it is a creation
+                    if ($entity === null) {
+                        //the id must not be provided due to the generator
+                        if ($hasGenerator === true) {
+                            throw new \Exception('The entity ['.$entityClass.'] does contains an identifier and have any ID generator, it is not compatible.');
+                        }
+
+                        $toCreate[] = $row;
+                    } else {
+                        $toUpdate[] = $row;
+                    }
+                }
             }
         }
 
-        return $entity;
+        $entities = [
+            'create' => $toCreate,
+            'update' => $toUpdate,
+            'delete' => $toDelete,
+        ];
+
+        return $entities;
     }
 
     /**
@@ -201,7 +180,7 @@ class ApiService
         $em = $doctrine->getManager();
         $repository = $em->getRepository($entityClass);
 
-        $identifiers = $this->getIdentifiers($entityClass);
+        $identifiers = $this->entityService->getIdentifiers($entityClass);
 
         $criteria = array();
 
@@ -278,107 +257,17 @@ class ApiService
 
     /**
      *
-     * @param String $entityClass
-     * @return unknown
-     */
-    protected function getMetadata($entityClass)
-    {
-        $em = $this->doctrine->getManager();
-        $meta = $em->getMetadataFactory()->getMetadataFor($entityClass);
-
-        return $meta;
-    }
-
-    /**
-     * Get the classname
-     * @param string $entityClass
-     *
-     * @return string The classname
-     */
-    protected function getEntityClassname($entityClass)
-    {
-        $meta = $this->getMetadata($entityClass);
-
-        return $meta->name;
-    }
-
-    /**
-     * Get the field mappings
-     * @param String $entityClass
-     *
-     * @return array
-     */
-    protected function getFieldMappings($entityClass)
-    {
-        $meta = $this->getMetadata($entityClass);
-
-        return $meta->fieldMappings;
-    }
-
-    /**
-     * Get the association mappings
-     * @param String $entityClass
-     *
-     * @return array
-     */
-    protected function getAssociationMappings($entityClass)
-    {
-        $meta = $this->getMetadata($entityClass);
-
-        return $meta->associationMappings;
-    }
-
-    /**
-     * Get the identifiers
-     *
-     * @param String $entityClass
-     *
-     * @return array The identifiers
-     *
-     */
-    protected function getIdentifiers($entityClass)
-    {
-        $meta = $this->getMetadata($entityClass);
-
-        return $meta->identifier;
-    }
-
-
-    /**
-     * Get the id generator
-     *
-     * @param String $entityClass
-     *
-     * @return array The id generator
-     *
-     */
-    protected function hasGenerator($entityClass)
-    {
-        $meta = $this->getMetadata($entityClass);
-
-        if (ClassMetadataInfo::GENERATOR_TYPE_NONE === $meta->generatorType) {
-            $hasGenerator = false;
-        } else {
-            $hasGenerator = true;
-        }
-
-        return $hasGenerator;
-    }
-
-
-    /**
-     *
-     * @param string $entityClass
+     * @param string $entityAlias
      * @param object $data
      */
-    protected function createEntity($entityClass, $data)
+    protected function createEntity($entityAlias, $data)
     {
-        $entityClassname = $this->getEntityClassname($entityClass);
+        $entityClass = $this->entityService->getClassByEntityAlias($entityAlias);
 
-        $entity = new $entityClassname();
+        $entity = new $entityClass();
 
-        $identifiers = $this->getIdentifiers($entityClass);
-        $meta = $this->getMetadata($entityClass);
+        $identifiers = $this->entityService->getIdentifiers($entityClass);
+        $meta = $this->entityService->getMetadata($entityClass);
 
         $generatorType = $meta->generatorType;
 
@@ -410,7 +299,7 @@ class ApiService
      */
     protected function setAssociations($entity, $entityClass, $data, $ignoredAttributes = array())
     {
-        $associationMappings = $this->getAssociationMappings($entityClass);
+        $associationMappings = $this->entityService->getAssociationMappings($entityClass);
         //
         foreach ($associationMappings as $associationName => $associationMapping) {
             if (!in_array($associationName, $ignoredAttributes)) {
@@ -480,7 +369,7 @@ class ApiService
      */
     protected function setFields($entity, $entityClass, $data, $ignoredAttributes = array())
     {
-        $fieldMappings = $this->getFieldMappings($entityClass);
+        $fieldMappings = $this->entityService->getFieldMappings($entityClass);
         //
         foreach ($fieldMappings as $fieldName => $fieldMapping) {
             if (!in_array($fieldName, $ignoredAttributes)) {
@@ -540,13 +429,15 @@ class ApiService
 
     /**
      *
-     * @param string $entityClass
-     * @param array $data
+     * @param string $entityAlias
+     * @param object $entity
+     * @param array  $data
      * @return object The entity
      */
-    protected function updateEntity($entityClass, $entity, $data)
+    protected function updateEntity($entityAlias, $entity, $data)
     {
-        $meta = $this->getMetadata($entityClass);
+        $entityClass = $this->entityService->getClassByEntityAlias($entityAlias);
+        $meta = $this->entityService->getMetadata($entityClass);
 
         //
         $this->setFields($entity, $entityClass, $data);
@@ -564,16 +455,5 @@ class ApiService
     protected function deleteEntity($entity)
     {
         throw new \Exception('The delete action for the api generator is not yet available');
-    }
-
-    /**
-     * Get the class linked to the entity alias
-     *
-     * @param string $entityAlias
-     * @return type
-     */
-    protected function getClassByEntityAlias($entityAlias)
-    {
-        return $this->entityRights[$entityAlias]['class'];
     }
 }

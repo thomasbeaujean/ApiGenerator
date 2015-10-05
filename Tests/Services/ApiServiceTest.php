@@ -32,67 +32,6 @@ class ApiServiceTest extends \tbn\ApiGeneratorBundle\Tests\PHPUnitKernelAware
         $objects = \Nelmio\Alice\Fixtures::load(__DIR__.'/../Generator/reference_1.yml', $em);
     }
 
-    /**
-     *
-     */
-    public function testRetrieveEntity()
-    {
-        $apiService = $this->getService('tbn.api_generator.service.api_service');
-        $entityAlias = 'tcreference';
-
-        $data = ['id' => 1];
-        $entity = $apiService->retrieveEntity($entityAlias, $data);
-
-        $this->assertNotNull($entity);
-    }
-
-    /**
-     *
-     */
-    public function testRetrieveEntityEception()
-    {
-        $apiService = $this->getService('tbn.api_generator.service.api_service');
-        $entityAlias = 'tcreference';
-
-        $data = ['id' => 999999];
-
-        $exceptionRaised = false;
-
-        try {
-            $apiService->retrieveEntity($entityAlias, $data);
-        } catch (\Exception $ex) {
-            $exceptionRaised = true;
-        }
-
-        $this->assertTrue($exceptionRaised, 'An exception should be raised');
-    }
-
-    /**
-     *
-     */
-    public function testRetrieveAllEntities()
-    {
-        $apiService = $this->getService('tbn.api_generator.service.api_service');
-        $entityAlias = 'tcreference';
-
-        $entities = $apiService->retrieveAllEntities($entityAlias);
-
-        $this->assertEquals(count($entities), 2, 'The retrieve all should give one entry');
-    }
-
-    /**
-     *
-     */
-    public function testGetEntityByData()
-    {
-        $apiService = $this->getService('tbn.api_generator.service.api_service');
-        $entityAlias = 'tcreference';
-
-        $data = ['id' => 1];
-        $entity = $apiService->getEntityByData("tbn\ApiGeneratorBundle\Tests\Fixtures\AppTestBundle\Entity\TcReference", $data);
-
-        $this->assertNotNull($entity);
-    }
 
     /**
      *

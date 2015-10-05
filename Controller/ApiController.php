@@ -51,7 +51,7 @@ class ApiController extends Controller
     {
         $this->checkEntityAliasAction($entityAlias, 'get_all');
 
-        $apiService = $this->get('tbn.api_generator.service.api_service');
+        $apiService = $this->get('tbn.api_generator.service.retrieve_service');
 
         $entity = $apiService->retrieveAllEntities($entityAlias);
         $normalizer = $this->get('get_set_foreign_normalizer');
@@ -76,7 +76,7 @@ class ApiController extends Controller
     {
         $this->checkEntityAliasAction($entityAlias, 'get_all_deep');
 
-        $apiService = $this->get('tbn.api_generator.service.api_service');
+        $apiService = $this->get('tbn.api_generator.service.retrieve_service');
 
         $entity = $apiService->retrieveAllEntities($entityAlias);
         $normalizer = $this->get('get_set_foreign_normalizer');
@@ -102,7 +102,7 @@ class ApiController extends Controller
     {
         $this->checkEntityAliasAction($entityAlias, 'get_one');
 
-        $apiService = $this->get('tbn.api_generator.service.api_service');
+        $apiService = $this->get('tbn.api_generator.service.retrieve_service');
 
         $data['id'] = $id;
         $entity = $apiService->retrieveEntity($entityAlias, $data);
@@ -129,7 +129,7 @@ class ApiController extends Controller
     {
         $this->checkEntityAliasAction($entityAlias, 'get_one_deep');
 
-        $apiService = $this->get('tbn.api_generator.service.api_service');
+        $apiService = $this->get('tbn.api_generator.service.retrieve_service');
 
         $data['id'] = $id;
         $entity = $apiService->retrieveEntity($entityAlias, $data);
