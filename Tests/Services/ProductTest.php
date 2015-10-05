@@ -101,7 +101,6 @@ class ProductTest extends \tbn\ApiGeneratorBundle\Tests\PHPUnitKernelAware
         $this->assertEquals(count($udpatedEntities), 1, 'The updated entity should return only 1 entry');
     }
 
-
     /**
      *
      */
@@ -121,5 +120,43 @@ class ProductTest extends \tbn\ApiGeneratorBundle\Tests\PHPUnitKernelAware
         $entity = $entities[0];
         $this->assertNotNull($entity->getId());
         $this->assertEquals($entity->getName(), 'New car');
+        $this->assertNotNull($entity->getCategory());
+        $this->assertEquals($entity->getCategory()->getId(), 1);
+    }
+
+    /**
+     *
+     */
+    public function testCreateOneWithTags()
+    {
+        $apiService = $this->getService('tbn.api_generator.service.api_service');
+
+        $tagsData = [
+            [
+                'name' => 'First Tag',
+            ],
+            [
+                'name' => 'Second Tag',
+            ],
+        ];
+
+        $data = [['name' => 'New car', 'tags' => $tagsData]];
+
+        unset($tagsData);
+
+        $request = new Request();
+        $request->request->replace($data);
+        $entities = $apiService->handleAction($request, $this->entityAlias);
+
+        $this->assertNotNull($entities);
+        $this->assertEquals(count($entities), 1, 'The create entity should return only 1 entry');
+
+        $entity = $entities[0];
+        $this->assertNotNull($entity->getId());
+
+        $tags = $entity->getTags();
+
+        $this->assertNotNull($tags);
+        $this->assertEquals(count($tags), 2, 'The tags were not created');
     }
 }

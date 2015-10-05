@@ -140,7 +140,7 @@ class ApiService
                 if (array_key_exists('__delete', $row)) {
                     $toDelete[] = $row;
                 } else {
-                    $entity = $this->retrieveEntityByClass($entityClass, $row);
+                    $entity = $this->retrieveService->retrieveEntityByClass($entityClass, $row);
 
                     //no entity found, so it is a creation
                     if ($entity === null) {
@@ -164,37 +164,6 @@ class ApiService
         ];
 
         return $entities;
-    }
-
-    /**
-     *
-     * @param string $entityClass
-     * @param array  $data
-     *
-     * @return type
-     * @throws \Exception
-     */
-    protected function retrieveEntityByClass($entityClass, $data)
-    {
-        $doctrine = $this->doctrine;
-        $em = $doctrine->getManager();
-        $repository = $em->getRepository($entityClass);
-
-        $identifiers = $this->entityService->getIdentifiers($entityClass);
-
-        $criteria = array();
-
-        //create the array of identifiers
-        foreach ($identifiers as $identifier) {
-            if (!array_key_exists($identifier, $data)) {
-                throw new \Exception('The identifier ['.$identifier.'] was not in the data provided for the entity ['.$entityClass.']');
-            }
-            $criteria[$identifier] = $data[$identifier];
-        }
-
-        $entity = $repository->findOneBy($criteria);
-
-        return $entity;
     }
 
     /**
@@ -257,13 +226,25 @@ class ApiService
 
     /**
      *
-     * @param string $entityAlias
+     * @param string $entityAlias The alias of the entity
      * @param object $data
      */
     protected function createEntity($entityAlias, $data)
     {
         $entityClass = $this->entityService->getClassByEntityAlias($entityAlias);
 
+        $entity = $this->createEntityByClass($entityClass, $data);
+
+        return $entity;
+    }
+
+    /**
+     *
+     * @param string $entityClass The class of the entity
+     * @param object $data
+     */
+    protected function createEntityByClass($entityClass, $data)
+    {
         $entity = new $entityClass();
 
         $identifiers = $this->entityService->getIdentifiers($entityClass);
@@ -303,54 +284,110 @@ class ApiService
         //
         foreach ($associationMappings as $associationName => $associationMapping) {
             if (!in_array($associationName, $ignoredAttributes)) {
-                $isOwningSide = $associationMapping['isOwningSide'];
-
-                //the entity owns the association, so it is linked to ONE another entity
-                if ($isOwningSide) {
-                    $nullable = false;
-                    $joinColumns = $associationMapping['joinColumns'];
-
-                    //parse join columns to check that they are all not nullable
-                    foreach ($joinColumns as $joinColumn) {
-                        if ($joinColumn['nullable'] === true) {
-                            $nullable = true;
-                        }
-                    }
+                //the field has been sent
+                if (array_key_exists($associationName, $data)) {
+                    $isOwningSide = $associationMapping['isOwningSide'];
 
                     //the targeted entity
                     $targetEntityClass = $associationMapping['targetEntity'];
 
-                    //the field has been sent
-                    if (array_key_exists($associationName, $data)) {
-                        $value = $data[$associationName];
+                    //the values
+                    $value = $data[$associationName];
 
-                        if (!$nullable) {
-                            if ($value === null) {
-                                throw new \Exception('The value NULL for the field ['.$associationName.'] is not allowed; entity ['.$entityClass.']');
-                            }
-                        }
-
-                        if ($value !== null) {
-                            //Get the associated entity
-                            $associatedEntity = $this->getEntityByData($targetEntityClass, $value);
-                        } else {
-                            $associatedEntity = null;
-                        }
-
-                        $method = 'set'.ucfirst($associationName);
-
-                        if (!method_exists($entity, $method)) {
-                            throw new MethodNotFoundException('The entity '.$entityClass.' requires to the '.$method.' method');
-                        }
-
-                        //set The value
-                        call_user_method($method, $entity, $associatedEntity);
+                    //the entity owns the association, so it is linked to ONE another entity
+                    if ($isOwningSide) {
+                        $associatedEntity = $this->getToOneAssociatedEntity($targetEntityClass, $associationMapping, $value);
+                    } else {
+                        //get the array collection of entities
+                        $associatedEntity = $this->getToManyAssocietedEntities($targetEntityClass, $value);
                     }
+
+                    $method = 'set'.ucfirst($associationName);
+
+                    if (!method_exists($entity, $method)) {
+                        throw new MethodNotFoundException('The entity '.$entityClass.' requires to the '.$method.' method');
+                    }
+
+                    //set The value
+                    call_user_func(array($entity, $method), $associatedEntity);
                 }
             }
         }
 
         return $entity;
+    }
+
+    /**
+     *
+     * @param type $targetEntityClass
+     * @param type $values
+     * @return \Doctrine\Common\Collections\ArrayCollection
+     */
+    protected function getToManyAssocietedEntities($targetEntityClass, $values)
+    {
+        $associatedEntities = new \Doctrine\Common\Collections\ArrayCollection();
+
+        foreach ($values as $value) {
+            $associatedEntity = $this->getAssociatedEntity($targetEntityClass, $value);
+            $associatedEntities->add($associatedEntity);
+        }
+
+        return $associatedEntities;
+    }
+
+    /**
+     *
+     * @param type $targetEntityClass
+     * @param type $associationMapping
+     * @param type $value
+     * @return type
+     * @throws \Exception
+     */
+    protected function getToOneAssociatedEntity($targetEntityClass, $associationMapping, $value)
+    {
+        $nullable = false;
+        $joinColumns = $associationMapping['joinColumns'];
+
+        //parse join columns to check that they are all not nullable
+        foreach ($joinColumns as $joinColumn) {
+            if ($joinColumn['nullable'] === true) {
+                $nullable = true;
+            }
+        }
+
+        if (!$nullable) {
+            if ($value === null) {
+                throw new \Exception('The value NULL for the field ['.$associationName.'] is not allowed; entity ['.$entityClass.']');
+            }
+        }
+
+        $associatedEntity = $this->getAssociatedEntity($targetEntityClass, $value);
+
+        return $associatedEntity;
+    }
+
+    /**
+     *
+     * @return Entity
+     */
+    protected function getAssociatedEntity($targetEntityClass, $value)
+    {
+        if ($value !== null) {
+            //Get the associated entity
+            $associatedEntity = $this->retrieveService->retrieveEntityByClass($targetEntityClass, $value);
+
+            //no entity were found
+            if ($associatedEntity === null) {
+                $associatedEntity = $this->createEntityByClass($targetEntityClass, $value);
+            } else {
+                //we update the associated entity
+                $associatedEntity = $this->updateEntityByClass($targetEntityClass, $associatedEntity, $value);
+            }
+        } else {
+            $associatedEntity = null;
+        }
+
+        return $associatedEntity;
     }
 
     /**
@@ -432,6 +469,21 @@ class ApiService
     protected function updateEntity($entityAlias, $entity, $data)
     {
         $entityClass = $this->entityService->getClassByEntityAlias($entityAlias);
+
+        $entity = $this->updateEntityByClass($entityClass, $entity, $data);
+
+        return $entity;
+    }
+
+        /**
+     *
+     * @param string $entityClass
+     * @param object $entity
+     * @param array  $data
+     * @return object The entity
+     */
+    protected function updateEntityByClass($entityClass, $entity, $data)
+    {
         $meta = $this->entityService->getMetadata($entityClass);
 
         //

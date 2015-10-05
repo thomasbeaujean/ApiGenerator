@@ -24,6 +24,13 @@ class Product
     protected $category;
 
     /**
+     *
+     * @var Tag[]
+     * @ORM\OneToMany(targetEntity="Tag", mappedBy="products", cascade={"ALL"})
+     */
+    protected $tags;
+
+    /**
      * The creation date of the product.
      *
      * @var \DateTime
@@ -37,6 +44,7 @@ class Product
     {
         //Initialize createdAt to now (useful for new product, override by existing one)
         $this->createdAt = new \DateTime();
+        $this->tags = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
     /**
@@ -55,5 +63,35 @@ class Product
     public function setCategory(Category $category)
     {
         $this->category = $category;
+    }
+
+    /**
+     *
+     * @return array The tags
+     */
+    public function getTags()
+    {
+        return $this->tags;
+    }
+
+    /**
+     * @param Tag $tag
+     *
+     * @return array The tags
+     */
+    public function addTag(Tag $tag)
+    {
+        $this->tags->add($tag);
+    }
+
+    /**
+     *
+     * @param array $tags
+     */
+    public function setTags($tags)
+    {
+        $this->tags->clear();
+
+        $this->tags = $tags;
     }
 }

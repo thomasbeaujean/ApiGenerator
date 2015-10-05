@@ -1,12 +1,4 @@
 
-tbn\ApiGeneratorBundle\Tests\Fixtures\AppTestBundle\Entity\TcReference:
-    simple1:
-        id: 1
-        name: "name1"
-    simple2:
-        id: 2
-        name: "name2"
-
 tbn\ApiGeneratorBundle\Tests\Fixtures\AppTestBundle\Entity\Category:
     car:
         id: 1

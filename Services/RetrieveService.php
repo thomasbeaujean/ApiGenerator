@@ -80,7 +80,7 @@ class RetrieveService
      * @return type
      * @throws \Exception
      */
-    protected function retrieveEntityByClass($entityClass, $data)
+    public function retrieveEntityByClass($entityClass, $data)
     {
         $doctrine = $this->doctrine;
         $em = $doctrine->getManager();
@@ -93,12 +93,17 @@ class RetrieveService
         //create the array of identifiers
         foreach ($identifiers as $identifier) {
             if (!array_key_exists($identifier, $data)) {
-                throw new \Exception('The identifier ['.$identifier.'] was not in the data provided for the entity ['.$entityClass.']');
+                $criteria = null;
+                continue;
             }
             $criteria[$identifier] = $data[$identifier];
         }
 
-        $entity = $repository->findOneBy($criteria);
+        if ($criteria !== null) {
+            $entity = $repository->findOneBy($criteria);
+        } else {
+            $entity = null;
+        }
 
         return $entity;
     }
