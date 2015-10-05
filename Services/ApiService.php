@@ -345,11 +345,6 @@ class ApiService
 
                         //set The value
                         call_user_method($method, $entity, $associatedEntity);
-                    } else {
-                        //
-                        if (!$nullable) {
-                            throw new \Exception('The association ['.$associationName.'] has not been sent and is mandatory for an entity ['.$entityClass.']');
-                        }
                     }
                 }
             }
