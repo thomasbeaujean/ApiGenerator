@@ -51,6 +51,7 @@ class ApiGeneratorExtension extends Extension
         $container->setParameter('tbn.api_generator.entities', $entitiesConfiguration);
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader->load('parameters.yml');
         $loader->load('services.yml');
     }
 }

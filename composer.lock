@@ -4,36 +4,45 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "1635d52d9450ea3b5cc1bc817bd6f7f1",
-    "content-hash": "08bf2d96b6e02793ac8aa336049973fe",
+    "hash": "906d0ae82a33f99ba7cb49fc0690ecc2",
+    "content-hash": "ba94e75039e50fe9e62f726da12fa545",
     "packages": [
         {
             "name": "tbn/getsetforeignnormalizer-bundle",
-            "version": "v2.0.0",
-            "target-dir": "tbn/GetSetForeignNormalizerBundle",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thomasbeaujean/GetSetForeignNormalizerBundle.git",
-                "reference": "e4104e88826c1cfe5cb0d6681dd7604377c6aabd"
+                "reference": "adb8a6d82118e3bcebb2eec5f6169158955292df"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thomasbeaujean/GetSetForeignNormalizerBundle/zipball/e4104e88826c1cfe5cb0d6681dd7604377c6aabd",
-                "reference": "e4104e88826c1cfe5cb0d6681dd7604377c6aabd",
+                "url": "https://api.github.com/repos/thomasbeaujean/GetSetForeignNormalizerBundle/zipball/adb8a6d82118e3bcebb2eec5f6169158955292df",
+                "reference": "adb8a6d82118e3bcebb2eec5f6169158955292df",
                 "shasum": ""
             },
             "require-dev": {
-                "symfony/class-loader": "2.3.*"
+                "doctrine/data-fixtures": "^1.1",
+                "doctrine/doctrine-bundle": ">=1.4",
+                "doctrine/orm": "~2.2,>=2.2.3,<2.5",
+                "nelmio/alice": ">=2.1",
+                "php": ">=5.3.0",
+                "phpunit/phpunit": "~4.4",
+                "sensio/distribution-bundle": ">=4.0",
+                "sensio/framework-extra-bundle": "~3.0,>=3.0.2",
+                "symfony/class-loader": "2.3.*",
+                "symfony/symfony": ">=2.7",
+                "twig/extensions": ">=1.0"
             },
             "type": "library",
             "autoload": {
-                "psr-0": {
-                    "tbn\\GetSetForeignNormalizerBundle": ""
+                "psr-4": {
+                    "tbn\\GetSetForeignNormalizerBundle\\": ""
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
-            "description": "add the getsetforeignnormalizer service",
-            "time": "2015-08-17 21:14:48"
+            "description": "Add the getsetforeignnormalizer service",
+            "time": "2015-09-28 19:37:58"
         }
     ],
     "packages-dev": [
@@ -956,16 +965,16 @@
         },
         {
             "name": "nelmio/alice",
-            "version": "2.1.0",
+            "version": "2.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nelmio/alice.git",
-                "reference": "37007622041d094317806fd27867127e1c73bdb0"
+                "reference": "e4b48d08ac935650747a2f3041c3577a4bed443d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nelmio/alice/zipball/37007622041d094317806fd27867127e1c73bdb0",
-                "reference": "37007622041d094317806fd27867127e1c73bdb0",
+                "url": "https://api.github.com/repos/nelmio/alice/zipball/e4b48d08ac935650747a2f3041c3577a4bed443d",
+                "reference": "e4b48d08ac935650747a2f3041c3577a4bed443d",
                 "shasum": ""
             },
             "require": {
@@ -1010,7 +1019,7 @@
                 "orm",
                 "test"
             ],
-            "time": "2015-09-06 11:09:44"
+            "time": "2015-10-01 16:43:07"
         },
         {
             "name": "phpdocumentor/reflection-docblock",
@@ -1435,16 +1444,16 @@
         },
         {
             "name": "phpunit/phpunit-mock-objects",
-            "version": "2.3.7",
+            "version": "2.3.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit-mock-objects.git",
-                "reference": "5e2645ad49d196e020b85598d7c97e482725786a"
+                "reference": "ac8e7a3db35738d56ee9a76e78a4e03d97628983"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit-mock-objects/zipball/5e2645ad49d196e020b85598d7c97e482725786a",
-                "reference": "5e2645ad49d196e020b85598d7c97e482725786a",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit-mock-objects/zipball/ac8e7a3db35738d56ee9a76e78a4e03d97628983",
+                "reference": "ac8e7a3db35738d56ee9a76e78a4e03d97628983",
                 "shasum": ""
             },
             "require": {
@@ -1487,7 +1496,7 @@
                 "mock",
                 "xunit"
             ],
-            "time": "2015-08-19 09:14:08"
+            "time": "2015-10-02 06:51:40"
         },
         {
             "name": "psr/log",
@@ -2346,7 +2355,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "tbn/getsetforeignnormalizer-bundle": 20
+    },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],

@@ -91,7 +91,7 @@ class ProductTest extends \tbn\ApiGeneratorBundle\Tests\PHPUnitKernelAware
     {
         $apiService = $this->getService('tbn.api_generator.service.api_service');
 
-        $data = [['id' => 1, 'name' => 'Updated car']];
+        $data = [['id' => 1, 'name' => 'Updated car', 'createdAt' => '2015-12-25 12:53:00', 'reference' => null]];
 
         $request = new Request();
         $request->request->replace($data);

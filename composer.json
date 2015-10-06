@@ -18,6 +18,6 @@
         "psr-4": { "tbn\\ApiGeneratorBundle\\": "" }
     },
     "require": {
-        "tbn/getsetforeignnormalizer-bundle": ">=2.0.0"
+        "tbn/getsetforeignnormalizer-bundle": "dev-master"
     }
 }

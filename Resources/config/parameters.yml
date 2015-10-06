@@ -1,0 +1,8 @@
+parameters:
+    tbn.api_generator.converter.date: "\\tbn\\GetSetForeignNormalizerBundle\\Converter\\DateConverter"
+    tbn.api_generator.converter.datetime: "\\tbn\\GetSetForeignNormalizerBundle\\Converter\\DatetimeConverter"
+    tbn.api_generator.converter.time: "\\tbn\\GetSetForeignNormalizerBundle\\Converter\\TimeConverter"
+    tbn.api_generator.converters.mapping:
+        date: "%tbn.api_generator.converter.date%"
+        datetime: "%tbn.api_generator.converter.datetime%"
+        time: "%tbn.api_generator.converter.time%"

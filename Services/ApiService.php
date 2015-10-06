@@ -22,6 +22,7 @@ class ApiService
     protected $entityRights = null;
     protected $entityService = null;
     protected $retrieveService = null;
+    protected $converterService = null;
 
     /**
      *
@@ -30,8 +31,10 @@ class ApiService
      * @param type                 $doctrine
      * @param type                 $validator
      * @param EntityService        $entityService
+     * @param RetrieveService      $retrieveService
+     * @param ConverterService     $converterService
      */
-    public function __construct(array $entityRights, AuthorizationService $authorizationService, $doctrine, $validator, EntityService $entityService, RetrieveService $retrieveService)
+    public function __construct(array $entityRights, AuthorizationService $authorizationService, $doctrine, $validator, EntityService $entityService, RetrieveService $retrieveService, ConverterService $converterService)
     {
         $this->authorizationService = $authorizationService;
         $this->doctrine = $doctrine;
@@ -39,6 +42,7 @@ class ApiService
         $this->entityRights = $entityRights;
         $this->entityService = $entityService;
         $this->retrieveService = $retrieveService;
+        $this->converterService = $converterService;
     }
 
     /**
@@ -412,13 +416,7 @@ class ApiService
                     $originalValue = $data[$fieldName];
 
                     $fieldType = $fieldMapping['type'];
-
-                    if ($fieldType === 'time') {
-                        $value = $this->revertTimeValue($originalValue);
-                    } else {
-                        $value = $originalValue;
-                    }
-
+                    $value = $this->converterService->revert($fieldMapping['type'], $originalValue);
 
                     if (!$nullable) {
                         if ($value === null) {

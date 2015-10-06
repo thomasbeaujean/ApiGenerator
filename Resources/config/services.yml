@@ -8,6 +8,7 @@ services:
             - "@validator"
             - "@tbn.api_generator.service.entity_service"
             - "@tbn.api_generator.service.retrieve_service"
+            - "@tbn.api_generator.service.converter_service"
     tbn.api_generator.twig.acme_extension:
         class: "tbn\\ApiGeneratorBundle\\Twig\\ApiGeneratorExtension"
         arguments:
@@ -29,3 +30,7 @@ services:
         arguments:
             - "%tbn.api_generator.entities%"
             - "@doctrine"
+    tbn.api_generator.service.converter_service:
+        class: "tbn\\ApiGeneratorBundle\\Services\\ConverterService"
+        arguments:
+            - "%tbn.api_generator.converters.mapping%"

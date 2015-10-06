@@ -38,7 +38,13 @@ class Product
      */
     protected $createdAt = null;
 
-     /**
+    /**
+     * @ORM\Column(type="string", length=50,nullable=true)
+     */
+    protected $reference;
+
+    /**
+     *
      */
     public function __construct()
     {
@@ -93,5 +99,41 @@ class Product
         $this->tags->clear();
 
         $this->tags = $tags;
+    }
+
+    /**
+     *
+     * @return type
+     */
+    public function getCreatedAt()
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     *
+     * @param \DateTime $createdAt
+     */
+    public function setCreatedAt(\DateTime $createdAt)
+    {
+        $this->createdAt = $createdAt;
+    }
+
+    /**
+     *
+     * @return string
+     */
+    public function getReference()
+    {
+        return $this->reference;
+    }
+
+    /**
+     *
+     * @param string $reference
+     */
+    public function setReference($reference)
+    {
+        $this->reference = $reference;
     }
 }
