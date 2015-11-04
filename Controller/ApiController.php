@@ -155,7 +155,7 @@ class ApiController extends Controller
     {
         $this->checkEntityAliasAction($entityAlias, 'delete');
 
-        $apiService = $this->get('tbn.api_generator.service.api_service');
+        $apiService = $this->get('tbn.api_generator.service.retrieve_service');
 
         $data['id'] = $id;
         $entity = $apiService->retrieveEntity($entityAlias, $data);
