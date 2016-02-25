@@ -56,7 +56,7 @@ class ApiService
         $data = $request->request->all();
 
         if (count($data) === 0) {
-            throw new \Exception('No data were prodived');
+            throw new \LogicException('No data were prodived');
         }
 
         $dataEntities = $this->getEntitiesByData($entityAlias, $data);
@@ -135,7 +135,7 @@ class ApiService
             //new entity
             if ($containsIdentifier === false) {
                 if ($hasGenerator === false) {
-                    throw new \Exception('The entity ['.$entityClass.'] does not contains any identifier and does not have any ID generator.');
+                    throw new \LogicException('The entity ['.$entityClass.'] does not contains any identifier and does not have any ID generator.');
                 }
                 //there is no identifier
                 //so the user want to create a new entity using the generator
@@ -150,7 +150,7 @@ class ApiService
                     if ($entity === null) {
                         //the id must not be provided due to the generator
                         if ($hasGenerator === true) {
-                            throw new \Exception('The entity ['.$entityClass.'] does contains an identifier and have any ID generator, it is not compatible.');
+                            throw new \LogicException('The entity ['.$entityClass.'] does contains an identifier and have any ID generator, it is not compatible.');
                         }
 
                         $toCreate[] = $row;
@@ -161,13 +161,11 @@ class ApiService
             }
         }
 
-        $entities = [
+        return [
             'create' => $toCreate,
             'update' => $toUpdate,
             'delete' => $toDelete,
         ];
-
-        return $entities;
     }
 
     /**
@@ -209,7 +207,7 @@ class ApiService
             $errorList = $validator->validate($entity);
 
             if (count($errorList) > 0) {
-                throw new \Exception(print_r($errorList, true));
+                throw new \LogicException(print_r($errorList, true));
             }
         }
     }
@@ -237,9 +235,7 @@ class ApiService
     {
         $entityClass = $this->entityService->getClassByEntityAlias($entityAlias);
 
-        $entity = $this->createEntityByClass($entityClass, $data);
-
-        return $entity;
+        return $this->createEntityByClass($entityClass, $data);
     }
 
     /**
@@ -361,13 +357,11 @@ class ApiService
 
         if (!$nullable) {
             if ($value === null) {
-                throw new \Exception('The value NULL for the field ['.$associationName.'] is not allowed; entity ['.$entityClass.']');
+                throw new \LogicException('The value NULL for the field ['.$associationName.'] is not allowed; entity ['.$entityClass.']');
             }
         }
 
-        $associatedEntity = $this->getAssociatedEntity($targetEntityClass, $value);
-
-        return $associatedEntity;
+        return $this->getAssociatedEntity($targetEntityClass, $value);
     }
 
     /**
@@ -420,7 +414,7 @@ class ApiService
 
                     if (!$nullable) {
                         if ($value === null) {
-                            throw new \Exception('The value NULL for the field ['.$fieldName.'] is not allowed; entity ['.$entityClass.']');
+                            throw new \LogicException('The value NULL for the field ['.$fieldName.'] is not allowed; entity ['.$entityClass.']');
                         }
                     }
 
@@ -451,7 +445,7 @@ class ApiService
         $value = \DateTime::createFromFormat($timeFormat, $originalValue);
 
         if ($value === false) {
-            throw new \Exception('The value ['.$originalValue.'] for the field ['.$fieldName.'] is not allowed; entity ['.$entityClass.']: Expected format ['.$timeFormat.']');
+            throw new \LogicException('The value ['.$originalValue.'] for the field ['.$fieldName.'] is not allowed; entity ['.$entityClass.']: Expected format ['.$timeFormat.']');
         }
 
         return $value;
@@ -468,9 +462,7 @@ class ApiService
     {
         $entityClass = $this->entityService->getClassByEntityAlias($entityAlias);
 
-        $entity = $this->updateEntityByClass($entityClass, $entity, $data);
-
-        return $entity;
+        return $this->updateEntityByClass($entityClass, $entity, $data);
     }
 
         /**
@@ -482,7 +474,7 @@ class ApiService
      */
     protected function updateEntityByClass($entityClass, $entity, $data)
     {
-        $meta = $this->entityService->getMetadata($entityClass);
+        $this->entityService->getMetadata($entityClass);
 
         //
         $this->setFields($entity, $entityClass, $data);
@@ -499,6 +491,6 @@ class ApiService
      */
     protected function deleteEntity($entity)
     {
-        throw new \Exception('The delete action for the api generator is not yet available');
+        throw new \LogicException('The delete action for the api generator is not yet available');
     }
 }
