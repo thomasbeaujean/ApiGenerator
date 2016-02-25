@@ -296,10 +296,15 @@ class ApiService
 
                     //the entity owns the association, so it is linked to ONE another entity
                     if ($isOwningSide) {
-                        $associatedEntity = $this->getToOneAssociatedEntity($targetEntityClass, $associationMapping, $value);
+                        if(isset($associationMapping['joinTable'])) {
+                            //get the array collection of entities
+                            $associatedEntity = $this->getToManyAssociatedEntities($targetEntityClass, $value);
+                        } else {
+                            $associatedEntity = $this->getToOneAssociatedEntity($targetEntityClass, $associationMapping, $value);
+                        }
                     } else {
                         //get the array collection of entities
-                        $associatedEntity = $this->getToManyAssocietedEntities($targetEntityClass, $value);
+                        $associatedEntity = $this->getToManyAssociatedEntities($targetEntityClass, $value);
                     }
 
                     $method = 'set'.ucfirst($associationName);
@@ -323,7 +328,7 @@ class ApiService
      * @param type $values
      * @return \Doctrine\Common\Collections\ArrayCollection
      */
-    protected function getToManyAssocietedEntities($targetEntityClass, $values)
+    protected function getToManyAssociatedEntities($targetEntityClass, $values)
     {
         $associatedEntities = new \Doctrine\Common\Collections\ArrayCollection();
 
