@@ -383,8 +383,10 @@ class ApiService
             if ($associatedEntity === null) {
                 $associatedEntity = $this->createEntityByClass($targetEntityClass, $value);
             } else {
-                //we update the associated entity
-                $associatedEntity = $this->updateEntityByClass($targetEntityClass, $associatedEntity, $value);
+                if ($this->authorizationService->isEntityAliasAllowedForRequest($targetEntityClass, 'update')) {
+                    //we update the associated entity
+                    $associatedEntity = $this->updateEntityByClass($targetEntityClass, $associatedEntity, $value);
+                }
             }
         } else {
             $associatedEntity = null;
