@@ -379,8 +379,10 @@ class ApiService
             //Get the associated entity
             $associatedEntity = $this->retrieveService->retrieveEntityByClass($targetEntityClass, $value);
 
-            //no entity were found
             if ($associatedEntity === null) {
+                if ($this->authorizationService->isEntityAliasAllowedForRequest($targetEntityClass, 'create')) {
+                    throw new \LogicException('The API does not allow creation of '.$targetEntityClass.' entities');
+                }
                 $associatedEntity = $this->createEntityByClass($targetEntityClass, $value);
             } else {
                 if ($this->authorizationService->isEntityAliasAllowedForRequest($targetEntityClass, 'update')) {
