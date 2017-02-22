@@ -188,7 +188,7 @@ class ApiService
                 $authorizationService->isEntityAliasAllowedForRequest($entityAlias, 'update');
             }
             if ($uow->isScheduledForDelete($entity)) {
-                $authorizationService->isEntityAliasAllowedForRequest($itemNamespace, 'delete');
+                $authorizationService->isEntityAliasAllowedForRequest($entityAlias, 'delete');
             }
         }
     }
