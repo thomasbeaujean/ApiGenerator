@@ -355,7 +355,7 @@ class ApiService
 
         //parse join columns to check that they are all not nullable
         foreach ($joinColumns as $joinColumn) {
-            if ($joinColumn['nullable'] === true) {
+            if (isset($joinColumn['nullable']) && $joinColumn['nullable'] === true) {
                 $nullable = true;
             }
         }
