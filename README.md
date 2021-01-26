@@ -1,4 +1,6 @@
+# /!\ DEPRECATED
 
+This bundle is not maintained anymore, if you are looking for an API out of the box, please check https://github.com/api-platform/api-platform
 
 # Installation
 
